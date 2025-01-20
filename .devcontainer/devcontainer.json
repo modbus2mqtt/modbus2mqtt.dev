@@ -1,0 +1,15 @@
+{
+    "build": { "dockerfile": "Dockerfile" },
+
+    "customizations": {
+      "vscode": {
+        "extensions": ["dbaeumer.vscode-eslint", "Angular.ng-template","mhutchie.git-graph", 
+        "ms-vscode.vscode-typescript", "ms-vscode.js-debug-nightly", "orta.vscode-jest", 
+        "firsttris.vscode-jest-runner", "esbenp.prettier-vscode"]
+      }
+    },
+    "forwardPorts": [3000, 4200],
+    "workspaceMount": "source=${localWorkspaceFolder},target=/workspace/m2m,type=bind",
+    "workspaceFolder": "/workspace/m2m"
+
+}

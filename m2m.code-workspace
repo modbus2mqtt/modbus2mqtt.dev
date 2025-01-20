@@ -1,0 +1,36 @@
+{
+	"folders": [
+		{
+			"name": "specification",
+			"path": "specification"
+		},
+		{
+			"name": "modbus2mqtt",
+			"path": "."
+		},
+		{
+			"name": "angular",
+			"path": "angular"
+		},
+		{
+			"name": "server",
+			"path": "server"
+		},
+		{
+			"name": "server.shared",
+			"path": "server.shared"
+		},
+		{
+			"name": "specification.shared",
+			"path": "specification.shared"
+		}		
+	],
+	"settings": {
+		"jest.disabledWorkspaceFolders": [
+			"m2m", "specification.shared", "server.shared", "angular"
+		],
+		"search.exclude": {
+			"specification/**/*": true
+		}
+	}
+}

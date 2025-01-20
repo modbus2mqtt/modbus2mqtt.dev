@@ -1,0 +1,12 @@
+{
+    "files.exclude": {
+        "specification": true,         // this is a default value
+        "angular": true,         // this is a default value
+        "server": true,         // this is a default value
+        "server.shared": true,         // this is a default value
+        "specification.shared": true,         // this is a default value
+        "hassio-addon-repository": true,         // this is a default value
+        "modbus2mqtt.config": true,         // this is a default value
+
+    }
+}
