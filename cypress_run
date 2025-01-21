@@ -1,0 +1,8 @@
+#!/bin/sh
+docker image pull cypress/included:13.15.1 
+docker container run -it \
+    --network host \
+    -v $PWD:/e2e \
+    -w /e2e \
+    -e DISPLAY \
+    cypress/included:13.15.1 

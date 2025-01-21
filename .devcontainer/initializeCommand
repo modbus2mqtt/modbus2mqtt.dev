@@ -3,6 +3,7 @@ set -e
 echo DOCKER_GID=$(getent group docker| cut -d: -f 3)>.devcontainer/.env
 REMOTE_UID=$(id| sed -e "s/uid=\([0-9]*\).*/\1/g")
 cp .devcontainer/Dockerfile  .devcontainer/Dockerfile.bck 
+xhost local:root
 if [ $REMOTE_UID -ne 1000 ]
 then
     sed -e "s/ARG REMOTE_UID.*/ARG REMOTE_UID=$REMOTE_UID/g"|

@@ -1,0 +1,11 @@
+#!/bin/sh
+# docker image pull modbus2mqtt/cypress-included-local
+docker container run  -it \
+    --user 1000:934 \
+    --network host \
+    -v $LOCAL_ROOT:/e2e \
+    -w /e2e/server \
+    -e DISPLAY \
+    --entrypoint '' \
+    modbus2mqtt/cypress-included-local \
+    sh
