@@ -1,6 +1,8 @@
 {
-    "build": { "dockerfile": "Dockerfile" },
-
+    "build": { "dockerfile": "Dockerfile"    },
+   "mounts": [
+        "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind,consistency=cached"
+    ],  
     "customizations": {
       "vscode": {
         "extensions": ["dbaeumer.vscode-eslint", "Angular.ng-template","mhutchie.git-graph", 
@@ -8,8 +10,15 @@
         "firsttris.vscode-jest-runner", "esbenp.prettier-vscode"]
       }
     },
-    "forwardPorts": [3000, 4200],
-    "workspaceMount": "source=${localWorkspaceFolder},target=/workspace/m2m,type=bind",
-    "workspaceFolder": "/workspace/m2m"
-
+  
+    "name": "modbus2mqtt.dev",
+    "forwardPorts": [3000, 4200, 3006],
+    "workspaceMount": "source=${localWorkspaceFolder},target=/workspace/modbus2mqtt,type=bind",
+    "workspaceFolder": "/workspace/modbus2mqtt",
+    "containerEnv": {
+      "DISPLAY": "ubuntumsi:0",
+      "LIBGL_ALWAYS_INDIRECT": "0"
+    },
+    "initializeCommand": ".devcontainer/initializeCommand",
+    "remoteUser": "node"
 }
