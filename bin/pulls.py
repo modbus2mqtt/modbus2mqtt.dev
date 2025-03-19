@@ -189,15 +189,22 @@ try:
                 for project in projectsList.projects:
                     if project.name == pr["name"]:
                         project.pullrequestid = pr['number']
-                        projects.doWithProjects(projectsList,'sync')
+                        projects.doWithProjects(projectsList,'sync', projectsList)
                         projects.doWithProjects(projectsList,'dependencies', projectsList, args.dependencytype, project)
                         exit(0)
                 project.eprint("pullrequest not found:" + args.pullrequest)
+            else:
+                projects.doWithProjects(projectsList,'sync',projectsList)
+                projects.doWithProjects(projectsList,'dependencies', projectsList, args.dependencytype, None)
+
         case "release":
                 projects.doWithProjects(projectsList,'prepareGitForRelease', projectsList )
-                projects.doWithProjects(projectsList,'sync',projectsList)
                 projects.doWithProjects(projectsList,'dependencies', projectsList, 'release')
-
+except projects.SyncException as err1:
+    projects.eprint(projects.currentProject + ": " + err1.args[0])
+    for arg in err1.args:
+        projects.eprint( arg)
+    exit(2)
 except Exception as err:
     for arg in err.args:
         projects.eprint( arg)
