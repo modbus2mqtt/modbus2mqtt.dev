@@ -73,7 +73,7 @@ def getGitPrefix( projects:Projects):
     if projects.owner == projects.login:
         return "https://github.com/"
     else:
-        return "git@"
+        return "git@github.com:"
     
 class SyncException(Exception):
     pass
