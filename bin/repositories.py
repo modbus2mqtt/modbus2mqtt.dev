@@ -297,6 +297,9 @@ def waitForMainTestPullRequest(repositories:Repositorys, mainTestPullRequest:Pul
     # check run not found or other issues. It should stop with exit() when checkrun is finished
     SyncException( "Unable validate check run for pull Request " + mainTestPullRequest.name + ":" +  mainTestPullRequest.number )
 
+def testRepository(repositoriesFile:str):
+    eprint( executeSyncCommand(["npm", 'run', 'test']).decode("utf-8"))
+
 def testRepositories(repositoriesFile:str):
             eprint( executeSyncCommand(["bin/testall.py", repositoriesFile]).decode("utf-8"))
 
@@ -700,6 +703,7 @@ repositoryFunctions = {
     'npminstall':npminstallRepository,
     'syncpull': syncpullRepository,
     'push' : pushRepository,
+    'test' : testRepository,
     'createpull' : createpullRepository,
     'newbranch': newBranch,
     'readpulltext': readpulltextRepository,
