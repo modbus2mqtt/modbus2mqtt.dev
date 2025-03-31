@@ -145,10 +145,15 @@ def dependencies( repositoryList, type:str, *args):
 
 def validatePullRequestArgs(pullrequest:str, pulltext:str)->repositories.PullRequest:
     pr = None
-    if args.pulltext == None or pulltext == '':
+    if pullrequest != None and pullrequest != '':
         pr  = repositories.getPullrequestFromString(pullrequest)
     if pr == None:
-            raise repositories.SyncException( "Usage: Either --pullrequest or -- pulltext is required ")
+        if pulltext != None and pulltext != '':
+            rc = repositories.getRequiredReposFromPRDescription(pulltext, None)
+            if len(rc)==0:
+                raise repositories.SyncException( "Usage: Either --pullrequest or -- pulltext is required ")
+            else:
+                pr = rc[0]
     return pr
 
 
