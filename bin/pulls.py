@@ -224,7 +224,7 @@ try:
             repositories.testRepositories(args.repositories)
         case "testorwait":
               pr  = repositories.getPullrequestFromString(args.pullrequest)
-              requiredPrs = repositories.getRequiredReposFromPRDescription(args.pullbody,pr)
+              requiredPrs = repositories.getRequiredReposFromPRDescription(args.pulltext,pr)
               maintestPullrequest = None
               for idx, p in enumerate(requiredPrs):
                 if p.name == pr.name and pr.number == p.number and idx == 0:
