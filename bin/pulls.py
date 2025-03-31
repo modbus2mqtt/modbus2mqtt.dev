@@ -182,8 +182,8 @@ parser_test.set_defaults(command='test')
 
 parser_testorwait = subparsers.add_parser("testorwait", help="Executed via github event pull_request")
 parser_testorwait.set_defaults(command='testorwait')
-parser_testorwait.add_argument("-r", "--pullrequest", help="Pull request <repository name>:<number> ", type = str)
-parser_testorwait.add_argument("-t", "--pulltext", help="Description of pull request ", type = str)
+parser_testorwait.add_argument( "pullrequest", help="Pull request <repository name>:<number> ", type = str)
+parser_testorwait.add_argument("pulltext", help="Description of pull request ", type = str)
 
 parser_release = subparsers.add_parser("release", help="releases all repositorys")
 parser_release.set_defaults(command='release')
@@ -229,6 +229,9 @@ try:
         case "test":
             repositories.testRepositories(args.repositories)
         case "testorwait":
+            if args.pullrequest == None or args.pullrequest == '':
+                raise repositories.SyncException()
+            else:
               pr  = repositories.getPullrequestFromString(args.pullrequest)
               requiredPrs = repositories.getRequiredReposFromPRDescription(args.pulltext,pr)
               maintestPullrequest = None
