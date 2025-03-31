@@ -160,6 +160,7 @@ parser.add_argument("-p", "--repositories", help="repositories.json file ",  nar
 
 parser_init = subparsers.add_parser("init", help="init: forks and clones repositories")
 parser_init.add_argument("-b", "--branch", help="New branch name",  nargs='?', default='main')
+parser_init.add_argument("-o", "owner", help="owner of the repository",  nargs='?', default=None)
 parser_init.set_defaults(command='init')
 
 parser_switch = subparsers.add_parser("branch", help="branch: Switches to the given branch")
@@ -199,7 +200,7 @@ parser_dependencies.add_argument("-t", "--pulltext", help="Pulltext " , type= st
 parser_dependencies.set_defaults(command='dependencies')
 try:
     args = parser.parse_args()
-    repositorysList = repositories.readrepositorys(args.repositories)
+    repositorysList = repositories.readrepositorys(args.repositories, args.owner)
     if repositorysList == None:
         raise repositories.SyncException("Unable to read " + args.repositories " invalid file content?")
 except Exception as err:

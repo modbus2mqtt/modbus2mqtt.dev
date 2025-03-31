@@ -174,13 +174,16 @@ def branchExists( branch):
         return False
     except SyncException as err:
         return True
-def readrepositorys(repositorysFile)->Repositorys:
+def readrepositorys(repositorysFile:str, owner:str)->Repositorys:
     try:
         input_file = open (repositorysFile)
         jsonDict:Dict[str,Any] =  json.load(input_file, object_hook=json2Repositorys)
-        js = json.loads(ghapi('GET', '/user'))
         p =  Repositorys(jsonDict)
-        p.login = js['login']
+        if owner != None:
+            js = json.loads(ghapi('GET', '/user'))
+            p.login = js['login']
+        else:
+            p.login = owner
         return p
     except Exception as e:
         print("something went wrong " , e)
