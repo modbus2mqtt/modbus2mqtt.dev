@@ -5,6 +5,15 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "pull install",
+            "type": "debugpy",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "program": "${workspaceFolder}/bin/pulls.py",
+             "args": ["-p", "repositories.test.json", "install" ], 
+            "console": "integratedTerminal"
+        },
+        {
             "name": "pull init",
             "type": "debugpy",
             "request": "launch",

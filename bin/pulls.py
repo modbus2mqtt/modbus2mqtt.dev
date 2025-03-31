@@ -176,6 +176,7 @@ parser_sync = subparsers.add_parser("sync", help="sync: pulls main and current b
 parser_sync.set_defaults(command='sync')
 parser_install = subparsers.add_parser("install", help="install: loads required components (E.g. npm install)")
 parser_install.set_defaults(command='install')
+
 parser_test = subparsers.add_parser("test", help="test: execute npm test for all repositorys")
 parser_test.set_defaults(command='test')
 
@@ -196,9 +197,14 @@ parser_dependencies.add_argument("-r", "--pullrequest", help="Pull request <repo
 parser_dependencies.add_argument("-t", "--pulltext", help="Pulltext " , type= str, default=None)
 
 parser_dependencies.set_defaults(command='dependencies')
-
-args = parser.parse_args()
-repositorysList = repositories.readrepositorys(args.repositories)
+try:
+    args = parser.parse_args()
+    repositorysList = repositories.readrepositorys(args.repositories)
+except Exception as err:
+    repositories.eprint(sys.argv)
+    for arg in err.args:
+        repositories.eprint( arg)
+    exit(2)    
 
 try:   
     match args.command:
