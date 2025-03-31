@@ -701,7 +701,7 @@ def npminstallRepository(repository:Repository, ci:bool):
         executeSyncCommand(['npm','install'])
 
 def buildRepository(repository:Repository):
-    executeSyncCommand(['npm','run', 'build'])
+    eprint(executeSyncCommand(['npm','run', 'build']).decode("utf-8"))
  
 repositoryFunctions = {
     'compare' : compareRepository,

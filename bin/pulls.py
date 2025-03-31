@@ -181,7 +181,8 @@ parser_sync.set_defaults(command='sync')
 parser_install = subparsers.add_parser("install", help="install: loads required components (E.g. npm install)")
 parser_install.set_defaults(command='install')
 parser_install.add_argument("-c","--ci", help="runs with npm ci instead of npm install" ,  nargs='?', type= bool, default=False)
-
+parser_build = subparsers.add_parser("build", help="build: execute npm run build for all repositorys")
+parser_build.set_defaults(command='build')
 parser_test = subparsers.add_parser("test", help="test: execute npm test for all repositorys")
 parser_test.set_defaults(command='test')
 
