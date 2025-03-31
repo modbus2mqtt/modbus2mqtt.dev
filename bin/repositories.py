@@ -314,9 +314,7 @@ def testRepositories(repositoriesFile:str):
 def syncRepository(repository: Repository, repositorys:Repositorys):
     repository.isForked = isRepositoryForked(repository.name)
     repository.branch =  subprocess.getoutput('git rev-parse --abbrev-ref HEAD')
-    setUrl(repository,repositorys)
-    
-    js = json.loads(ghapi('GET', '/user'))
+    setUrl(repository,repositorys)  
     out = executeCommand(['git','remote','show',repositorys.login])
     match = re.search(r'.*Push *URL:[^:]*:([^\/]*)', out.decode("utf-8"))
     match = re.search(r'.*Remote[^:]*:[\r\n]+ *([^ ]*)', out.decode("utf-8"))
