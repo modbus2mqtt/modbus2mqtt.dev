@@ -201,17 +201,13 @@ def getTestResultStatus(repositorys:Repositorys):
         return TestStatus.success
 def hasLoginFeatureBranch(repository:Repository, repositorys:Repositorys):
     try:
-        if repository.branch == None:
-            return False
-        line= executeSyncCommand(['git', 'ls-remote', '--heads', repositorys.login,  'refs/heads/' + repository.branch]).decode("utf-8")
-        if len(line)> 0:
-            return True
-        return False
+        out = ghapi('GET', 'repos/' +repositorys.login + '/'+ repository.name +'/branches/' + repository.branch)
+        return True
     except SyncException as err:
         return False        
 def checkRemote( remote:str):
         out = executeSyncCommand(['git', 'remote','-v',]).decode("utf-8")
-        return re.match(r'^' + remote, out)
+        return len(re.findall(r'((\n|^)' + remote + ')', out, re.MULTILINE)) >0
 
 def addRemote(repositories:Repositorys, repository:Repository, origin:str):
      cmd = ['git', 'remote', 'add', origin, getGitPrefix(repositories)  + origin + '/' + repository.name + '.git' ]
@@ -220,7 +216,6 @@ def setUrl(repository:Repository, repositorys:Repositorys):
     eprint("setUrl")
     origins = [repositorys.owner]
     if isRepositoryForked( repository.name):
-        origins.append(repositorys.login)
         if hasLoginFeatureBranch(repository, repositorys):
             origins.append(repositorys.login)
 
@@ -273,15 +268,24 @@ def getLastCheckRun(repositories:Repositorys,repository:Repository, branch:str)-
     return Checkrun(checkrunjs['status'] ==  "completed", checkrunjs["conclusion"] == "success")
               
 def waitForMainTestPullRequest(repositories:Repositorys, mainTestPullRequest:PullRequest):
-    eprint( "waiting for " + mainTestPullRequest.name + ":" + mainTestPullRequest.number)
+    eprint( "waiting for " + mainTestPullRequest.name + ":" + str(mainTestPullRequest.number))
     for mr in repositories.repositorys:
-        if mr.name == mainTestPullRequest.name:
+        if mr.name != mainTestPullRequest.name:
             while  True:
-                js = getPullrequestId(mr,repositories,['state','headRefName'])
+                # set the pull request number to identify the pull request
+                mainTest = Repository(mainTestPullRequest.name)
+                mainTest.pullrequestid = mainTestPullRequest.number
+                js = searchPullRequest(mainTest,repositories,['state','headRefName', 'number'])
+                for entry in js:
+                    if entry['number'] == mainTestPullRequest.number:
+                        js = entry
+  
+                if js == None:
+                    raise SyncException("Unable to get pull request id for " + mr.name)
                 match ( js['state'] ):
                     case 'OPEN'| 'APPROVED':  
                         eprint( "state " + js['state'])
-                        checkrun = getLastCheckRun(repositories, mr, js['headRefName'] )
+                        checkrun = getLastCheckRun(repositories, mainTest, js['headRefName'] )
                         if checkrun.completed:
                             if checkrun.success:
                                 eprint( mainTestPullRequest.name + ":" + mainTestPullRequest.number + " finished with success")
@@ -295,7 +299,10 @@ def waitForMainTestPullRequest(repositories:Repositorys, mainTestPullRequest:Pul
                         # try again later
                         time.sleep(30)
     # check run not found or other issues. It should stop with exit() when checkrun is finished
-    SyncException( "Unable validate check run for pull Request " + mainTestPullRequest.name + ":" +  mainTestPullRequest.number )
+    SyncException( "Unable validate check run for pull Request " + mainTestPullRequest.name + ":" +  str(mainTestPullRequest.number ))
+
+def testRepository(repositoriesFile:str):
+    eprint( executeSyncCommand(["npm", 'run', 'test']).decode("utf-8"))
 
 def testRepositories(repositoriesFile:str):
             eprint( executeSyncCommand(["bin/testall.py", repositoriesFile]).decode("utf-8"))
@@ -307,7 +314,7 @@ def syncRepository(repository: Repository, repositorys:Repositorys):
     setUrl(repository,repositorys)
     
     js = json.loads(ghapi('GET', '/user'))
-    out = executeCommand(['git','remote','show','origin'])
+    out = executeCommand(['git','remote','show',repositorys.login])
     match = re.search(r'.*Push *URL:[^:]*:([^\/]*)', out.decode("utf-8"))
     match = re.search(r'.*Remote[^:]*:[\r\n]+ *([^ ]*)', out.decode("utf-8"))
     repository.remoteBranch = match.group(1)
@@ -376,7 +383,7 @@ def pushRepository(repository:Repository, repositorys:Repositorys):
 def compareRepository( repository:Repository, repositorys:Repositorys):
     # compares git current content with remote branch 
     repository.branch =  subprocess.getoutput('git rev-parse --abbrev-ref HEAD')
-    showOrigin = executeCommand( [ 'git', '-v', 'show', 'origin' ])
+    showOrigin = executeCommand( [ 'git', '-v', 'show', repositorys.login ])
     repository.hasChanges = False
     repository.localChanges = int(subprocess.getoutput('git status --porcelain| wc -l'))
 
@@ -434,7 +441,7 @@ def checkFileExistanceInGithubBranch(owner, repo, branch, file):
             return True
     return False
 
-def checkFileExistanceInGithubPullRequest(owner, repo, pullnumber, file):
+def checkFileExistanceInGithubPullRequest(owner, repo, pullnumber, file):                           
     result = json.loads(ghapi('GET','/repos/'+ owner +'/' + repo + '/pulls/'+ pullnumber +'/files'))
     for o in result:
         if o['filename'] == file:
@@ -459,35 +466,31 @@ def readpulltextRepository(repository:Repository):
             
         if re.search(r'\s*$', out):
             break;
+def searchPullRequest( repository:Repository, repositorys:Repositorys):
+    prtext = ""
+    if repository.pullrequestid != None:
+        prtext= "/" + str(repository.pullrequestid)
+    rc = json.loads(ghapi('GET', "repos/" + repositorys.owner + "/" + repository.name + "/pulls" + prtext))
+    if type(rc) is list:
+        return rc;
+    else:
+        return [rc]
 
-def getPullrequestId(repository:Repository, repositorys:Repositorys, additionalFields:list[str] = None):
-    cmd = [ "gh", "pr", "list" , 
-        "-R", repositorys.owner + "/" + repository.name,
-        "--json", "number" ,
-        "--json", "headRefName",
-        "--json", "author"  ]
-    if additionalFields != None:
-        for field in additionalFields:
-            cmd.append("--json")
-            cmd.append( field )
-    js = json.loads(executeSyncCommand(cmd))
+def getPullrequestId(repository:Repository, repositorys:Repositorys):
+    js = searchPullRequest(repository, repositorys)
     if len(js) > 0:
         for entry in js:
-            if entry['author']['login'] == repositorys.login and entry['headRefName'] == repository.branch: 
-                if additionalFields == None:
-                    return js[0]["number"]
-                else:
-                    return js[0]
+            if repository.branch != None:
+                if entry['head']['label'] == repositorys.login + ':' + repository.branch:                
+                    return entry["number"]
+
     return None
-def getpulltext( repository:Repository, baseowner:str, pullrequestid:int = None)->str:
-    if pullrequestid == None:
-        pullrequestid = repository.pullrequestid
-    if pullrequestid != None and pullrequestid >0:
-        js = json.loads(executeSyncCommand([ "gh", "pr", "view" , str( pullrequestid), 
-            "-R", baseowner + "/" + repository.name,
-            "--json", "body"  ]))
-        return  js['body']
-    return None
+def getpulltext( pullrequest:PullRequest, baseowner:str)->str:
+
+    js = json.loads(executeSyncCommand([ "gh", "pr", "view" , str( pullrequest.number), 
+        "-R", baseowner + "/" + pullrequest.name,
+        "--json", "body"  ]))
+    return  js['body']
 
 requiredRepositorysRe = r"\s*required PRs: (.*)\s*"
 
@@ -507,14 +510,20 @@ def getRequiredReposFromPRDescription(prDescription:str,pullrequest:PullRequest)
                 prx = prtext.split(':')
                 if len(prx) == 2:
                     rc.append(PullRequest(prx[0],int(prx[1])))
-        else:
+    if len(rc)==0:
+        if pullrequest != None:
             rc.append(pullrequest)
+        else:
+            raise SyncException("Unable to determine pull requests no pull request available and the pull description contains no dependencies ") 
     return rc
 
-def getRequiredPullrequests( repository:Repository, pullrequest:PullRequest, pulltext:str = None, owner:str=None )->list[PullRequest]:
-    if pulltext == None and owner != None:
-        pulltext = getpulltext( repository, owner, pullrequest.name, pullrequest.number )
-    return getRequiredReposFromPRDescription(pulltext,pullrequest)
+def getRequiredPullrequests( pullrequest:PullRequest= None, pulltext:str = None, owner:str=None )->list[PullRequest]:
+    if pulltext == None and owner != None and pullrequest != None:
+        pulltext = getpulltext( pullrequest, owner )
+    if pulltext != None:
+        return getRequiredReposFromPRDescription(pulltext,pullrequest)
+    else:
+        raise SyncException("Argument pulltext or owner and Pullrequest are required")
 
 def updatepulltextRepository(repository:Repository, repositorysList: Repositorys, pullRepositorys):
     requiredText = "required PRs: "
@@ -522,17 +531,17 @@ def updatepulltextRepository(repository:Repository, repositorysList: Repositorys
         requiredText += p.name + ":" + str(p.pullrequestid) + ", "
     if requiredText.endswith(", "):
         requiredText = requiredText[:-2]
-    pulltext = getpulltext(repository, repositorysList.owner)
-    if pulltext != None:
+    if repository.pullrequestid != None:
+        txt = getpulltext(PullRequest(repository.name,repository.pullrequestid), repositorysList.owner)
         pulltext = re.sub(
            requiredRepositorysRe, 
            "", 
-           pulltext)
-    eprint( pulltext)
-    args = [ "gh", "pr", "edit", str( repository.pullrequestid), 
+           txt)
+        eprint( pulltext)
+        args = [ "gh", "pr", "edit", str( repository.pullrequestid), 
             "-R", repositorysList.owner + "/" + repository.name,
             "--body", pulltext + "\n" + requiredText ]
-    executeSyncCommand(args)
+        executeSyncCommand(args)
 def readPackageJson( dir:str)->Dict[str,any]:
     try:
         with open(dir) as json_data:
@@ -541,30 +550,27 @@ def readPackageJson( dir:str)->Dict[str,any]:
         eprint("Exception read " )
         msg = str(err.args)
         raise SyncException("Try to open package.json in " + os.getcwd() + '\n' +  msg)
-def updatePackageJsonReferences(repository:Repository,  repositorysList: Repositorys,dependencytype: str, prRepository:Repository):
-    prs:list[PullRequest] = []
-    if dependencytype == 'pull':
-        prs = getRequiredPullrequests(prRepository,  PullRequest(prRepository.name ,prRepository.pullrequestid), owner=repositorysList.owner)
-        if prRepository == None:
-            SyncException("pull requires pull request parameter -r")
-        else: # do it for all repositorys
-            for pr in repositorysList.repositorys:
-                prs.append(PullRequest(pr.name, pr.pullrequestid))         
+def updatePackageJsonReferences(repository:Repository,  repositorysList: Repositorys,dependencytype: str, pullRequests:list[PullRequest]):
+    if dependencytype != 'pull':
+        pullRequests = []
+        for pr in repositorysList.repositorys:
+            pullRequests.append(PullRequest(pr.name, pr.pullrequestid))         
     npminstallargs = []
     npmuninstallargs = []
     pkgjson = readPackageJson('package.json')
     
-    for pr in prs:
+    for pr in pullRequests:
          # restrict to open PR's
             
-        package = '@' + repositorysList.owner+ '/' +  pr['name']
+        package = '@' + repositorysList.owner+ '/' +  pr.name
         
         if 'dependencies' in pkgjson and package in pkgjson['dependencies'].keys():
-            pRepository = Repository(pr['name'])
+            pRepository = Repository(pr.name)
             pRepository.branch = repository.branch
-            js = getPullrequestId( pRepository,repositorysList,["state"])
+            pRepository.pullrequestid = pr.number
+            js = searchPullRequest( pRepository,repositorysList)
             # If PR is no more open, use main branch instead of PR
-            if ( js == None and dependencytype == 'local') or( dependencytype == 'pull' and js['state'] not in ['OPEN', 'APPROVED']):
+            if js != None and dependencytype == 'pull' and js[0]['state'].lower() not in ['open', 'approved']:      
                 dependencytype ='remote'
                    
             match dependencytype:
@@ -574,29 +580,30 @@ def updatePackageJsonReferences(repository:Repository,  repositorysList: Reposit
                 case "remote":
                     # for testing: Use login instead of owner
                     # In production owner == login
-                    githubName = 'github:'+ repositorysList.owner +'/' + pr['name']
-                    if checkFileExistanceInGithubBranch('modbus2mqtt', pr['name'],'main', 'package.json'):
+                    githubName = 'github:'+ repositorysList.owner +'/' + pr.name
+                    if checkFileExistanceInGithubBranch('modbus2mqtt', pr.name,'main', 'package.json'):
                         npminstallargs.append(  githubName)
                         npmuninstallargs.append( package )
                     else:
-                        eprint("package.json is missing in modbus2mqtt/" + pr['name'] +"#main"
+                        eprint("package.json is missing in modbus2mqtt/" + pr.name +"#main"
                         + ".\nUnable to set remote reference in modbus2mqtt/" + repository.name 
                         + "\nContinuing with invalid reference")
                 case "release":
                     # read package.json's version number build version tag
-                    versionTag = "v" + readPackageJson(os.path.join('..', pr['name'] ,'package.json'))['version']
-                    releaseName = 'github:'+ repositorysList.login +'/' + pr['name']+ '#' +versionTag
+                    versionTag = "v" + readPackageJson(os.path.join('..', pr.name ,'package.json'))['version']
+                    releaseName = 'github:'+ repositorysList.login +'/' + pr.name+ '#' +versionTag
                     npminstallargs.append(  releaseName)
                     npmuninstallargs.append( package )                    
                 case "pull":
-                    githubName = 'github:'+ repositorysList.owner +'/' + pr['name']
-                    newgithubName = githubName + '#pull/' + str(pr['number']) + '/head'
-                    if checkFileExistanceInGithubPullRequest('modbus2mqtt', pr['name'],str(pr['number']), 'package.json'):
+                    githubName = getGitPrefix(repositorysList) + repositorysList.owner +'/' + pr.name
+                    newgithubName = githubName + '#pull/' + str(pr.number) + '/head'
+                    if checkFileExistanceInGithubBranch(repositorysList.owner, pr.name,'main', 'packdage.json'
+                        ) or checkFileExistanceInGithubPullRequest(repositorysList.owner, pr.name,str(pr.number), 'package.json'):
                         npminstallargs.append(  newgithubName )  
                         npmuninstallargs.append( package )
                     else:
                         eprint("package.json is missing in " + newgithubName
-                        + ".\nUnable to set remote reference                                                                                                                                                                                                                                in modbus2mqtt/" + pr['name'] + '/package.json'
+                        + ".\nUnable to set remote reference                                                                                                                                                                                                                                in modbus2mqtt/" + pr.name + '/package.json'
                         + "\nContinuing with invalid reference")
     if len(npmuninstallargs ) > 0:
         executeSyncCommand(["npm", "uninstall"] + npmuninstallargs)
@@ -621,7 +628,7 @@ def ensureNewPkgJsonVersion():
         return "v" + readPackageJson('package.json')['version']        
     return versionTag
 
-def dependenciesRepository(repository:Repository,  repositorysList: Repositorys,dependencytype: str, prRepository:Repository = None):
+def dependenciesRepository(repository:Repository,  repositorysList: Repositorys,dependencytype: str, pullRequests:list[PullRequest]):
 
     if dependencytype == 'release':
         # find unreleased commits
@@ -650,7 +657,7 @@ def dependenciesRepository(repository:Repository,  repositorysList: Repositorys,
                 executeSyncCommand( ["git", "add", "."])
                 executeSyncCommand( ["git", "commit", "-m" , "Update npm version number " + versionTag] )
                 executeSyncCommand( ["git", "pull", "-X", "theirs"] )
-                executeSyncCommand( ["git", "push" , "-f", "origin", "HEAD"])
+                executeSyncCommand( ["git", "push" , "-f", repositorysList.owner, "HEAD"])
                 needsNewRelease = True
 
         executeSyncCommand( ['git','switch', 'release'] )
@@ -669,18 +676,15 @@ def dependenciesRepository(repository:Repository,  repositorysList: Repositorys,
         if  not tagExists(versionTag):
                 executeSyncCommand(["git", "tag", versionTag] )
                 if needsNewRelease:
-                    executeSyncCommand(["git", "push", "--atomic", "-f", "origin" , "release", versionTag])
+                    executeSyncCommand(["git", "push", "--atomic", "-f", repositorysList.owner , "release", versionTag])
                 else:
-                    executeSyncCommand(["git", "push", "origin", "tag", versionTag])
+                    executeSyncCommand(["git", "push", repositorysList.owner, "tag", versionTag])
                 eprint( "Released " + repository.name + ":" + versionTag)
         else:
             if needsNewRelease:
                 raise SyncException( "Release failed: Tag '" + versionTag + "' exists in " + repository.name )
     else:
-        updatePackageJsonReferences(repository, repositorysList, dependencytype, prRepository)
-        repository.localChanges = getLocalChanges()
-        if repository.localChanges > 0:
-            raise SyncException("File(s) have been updated in " + repository.name + ".\nThere are local changes.\nPlease commit them first")
+        updatePackageJsonReferences(repository, repositorysList, dependencytype, pullRequests)
         
 def prepareGitForReleaseRepository(repository:Repository,  repositorysList: Repositorys):
     if repositorysList.login != repositorysList.owner:

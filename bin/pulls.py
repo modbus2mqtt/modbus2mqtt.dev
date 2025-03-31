@@ -102,9 +102,11 @@ def createPullRequests( repositorysList:repositories.Repositorys, issue:Issue):
         repositories.doWithRepositorys(repositorysList,'createpull', repositorysList, pullRepositorys, pulltext, issue )
         repositories.doWithRepositorys(repositorysList,'updatepulltext', repositorysList, pullRepositorys , pulltext)
     except Exception as err:
+        repositories.eprint("Creating aborted =====")
         for arg in err.args:
             if type(arg) is str:
-                repositories.eprint("Creating aborted " + arg)
+                repositories.eprint(  arg)
+        repositories.eprint("================")
         exit(2)
 def initRepositorys(branch):
     repositories.eprint("initRepository: " + branch)
@@ -141,6 +143,15 @@ def dependencies( repositoryList, type:str, *args):
     finally:
         os.chdir(pwd)
 
+def validatePullRequestArgs(pullrequest:str, pulltext:str)->repositories.PullRequest:
+    pr = None
+    if args.pulltext == None:
+        pr  = repositories.getPullrequestFromString(pullrequest)
+    else:
+        if pulltext == None:
+            raise repositories.SyncException( "Usage: Either --pullrequest or -- pulltext is required ")
+    return pr
+
 
 parser = argparse.ArgumentParser()
 subparsers = parser.add_subparsers(help="sub-commands")
@@ -157,13 +168,14 @@ parser_switch.set_defaults(command='branch')
 
 parser_syncpull = subparsers.add_parser("syncpull", help="sync: pull request from root root repositories")
 parser_syncpull.set_defaults(command='syncpull')
-parser_syncpull.add_argument("pullrequest", help="Pull request <repository name>:<number> in repository  e.g 'angular:14'" , type= str)
 parser_syncpull.add_argument("branch", help="New branch for the Pull request " , type= str)
-parser_syncpull.add_argument("pulltext", help="Pulltext " , type= str)
+parser_syncpull.add_argument("-r","--pullrequest", help="Pull request <repository name>:<number> in repository  e.g 'angular:14'" , type= str,   nargs='?', default=None)
+parser_syncpull.add_argument("-t","--pulltext", help="Pulltext " ,  nargs='?', type= str, default=None)
 
 parser_sync = subparsers.add_parser("sync", help="sync: pulls main and current branch from root repositories")
 parser_sync.set_defaults(command='sync')
-
+parser_install = subparsers.add_parser("install", help="install: loads required components (E.g. npm install)")
+parser_install.set_defaults(command='install')
 parser_test = subparsers.add_parser("test", help="test: execute npm test for all repositorys")
 parser_test.set_defaults(command='test')
 
@@ -180,7 +192,9 @@ parser_create.set_defaults(command='createpull')
 
 parser_dependencies = subparsers.add_parser("dependencies", help="dependencies changes dependencies in package.json files ]")
 parser_dependencies.add_argument("dependencytype", help="command ", choices=['local','pull','remote'], default='local')
-parser_dependencies.add_argument("-r", "--pullrequest", help="Pull request <repository name>:<number> in repository  e.g 'angular:14'" ,type = str,  nargs='?', default=None)
+parser_dependencies.add_argument("-r", "--pullrequest", help="Pull request <repository name>:<number> in repository  e.g 'angular:14'" , type= str, default=None)
+parser_dependencies.add_argument("-t", "--pulltext", help="Pulltext " , type= str, default=None)
+
 parser_dependencies.set_defaults(command='dependencies')
 
 args = parser.parse_args()
@@ -192,16 +206,14 @@ try:
             initRepositorys(args.branch)
         case "branch":
             repositories.doWithRepositorys(repositorysList,'newbranch', args.branch)
-            repositories.doWithRepositorys(repositorysList,'npminstall')
-
         case "sync":
             repositories.doWithRepositorys(repositorysList,'sync',repositorysList)
+        case "install":
+            repositories.doWithRepositorys(repositorysList,'npminstall',repositorysList)
         case "syncpull":
-            pr  = repositories.getPullrequestFromString(args.pullrequest)
-            repositories.Repository(pr.name)
-            prs = repositories.getRequiredPullrequests(repositories.Repository(pr.name),  pr, pulltext=args.pulltext)
+            pr  = validatePullRequestArgs(args.pullrequest, args.pulltext)
+            prs = repositories.getRequiredPullrequests(  pullrequest=pr, pulltext=args.pulltext, owner=repositorysList.owner)
             repositories.doWithRepositorys(repositorysList,'syncpull',repositorysList, prs, args.branch)
-            repositories.doWithRepositorys(repositorysList,'npminstall')
         case "test":
             repositories.testRepositories(args.repositories)
         case "testorwait":
@@ -214,13 +226,15 @@ try:
               if maintestPullrequest == None:
                   raise repositories.SyncException( "Error: " + args.pullrequest + " is not in " + args.pulltext)
               for p in requiredPrs:
-                if p.name != maintestPullrequest.name:
+                if p.name == maintestPullrequest.name:
+                    # Tests will be executed in the workflow itself
+                    print("type=testrunner")                  
+                else:
                     # wait happens here. If the testrunner action fails, this will exit(2)
                     # otherwise exit(0)
-                    repositories.waitForMainTestPullRequest(repositorysList,maintestPullrequest)
-                else:
-                    # Tests will be executed in the workflow itself
-                    print("type=testrunner")                       
+                    # I need a open pull request with check to proceed
+                    #TODO repositories.waitForMainTestPullRequest(repositorysList,maintestPullrequest)
+                    repositories.eprint("Wait is not implemented yet")
         case "createpull":
             if repositorysList.owner == repositorysList.login:
                 raise repositories.SyncException("Owner must be different from logged in user: " + repositorysList.owner + " == " + repositorysList.login )
@@ -231,16 +245,20 @@ try:
             createPullRequests( repositorysList, ii)
         case "dependencies":
             if args.dependencytype == 'pull':
-                pr  = repositories.getPullrequestFromString(args.pullrequest)
+                pr = None
+                if args.pulltext == None:
+                    pr  = repositories.getPullrequestFromString(args.pullrequest)
+                else:
+                    if args.pulltext == None:
+                        raise repositories.SyncException( "Usage: Either --pullrequest or -- pulltext is required ")
+                
+                prs = repositories.getRequiredPullrequests( pullrequest=pr,owner=repositorysList.owner, pulltext=args.pulltext)      
                 for repository in repositorysList.repositorys:
-                    if repositories.name == pr["name"]:
-                        repositories.pullrequestid = pr['number']
-                        repositories.doWithRepositorys(repositorysList,'sync', repositorysList)
-                        repositories.doWithRepositorys(repositorysList,'dependencies', repositorysList, args.dependencytype, repository)
-                        exit(0)
-                repositories.eprint("pullrequest not found:" + args.pullrequest)
+                    for pr in prs:
+                        if repository.name == pr.name:
+                            repository.pullrequestid = pr.number
+                repositories.doWithRepositorys(repositorysList,'dependencies', repositorysList, args.dependencytype, prs)
             else:
-                repositories.doWithRepositorys(repositorysList,'sync',repositorysList)
                 repositories.doWithRepositorys(repositorysList,'dependencies', repositorysList, args.dependencytype, None)
 
         case "release":
