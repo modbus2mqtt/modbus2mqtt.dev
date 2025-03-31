@@ -179,7 +179,7 @@ def readrepositorys(repositorysFile:str, owner:str)->Repositorys:
         input_file = open (repositorysFile)
         jsonDict:Dict[str,Any] =  json.load(input_file, object_hook=json2Repositorys)
         p =  Repositorys(jsonDict)
-        if owner != None:
+        if owner == None:
             js = json.loads(ghapi('GET', '/user'))
             p.login = js['login']
         else:
