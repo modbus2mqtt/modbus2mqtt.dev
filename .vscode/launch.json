@@ -19,7 +19,7 @@
             "request": "launch",
             "cwd": "${workspaceFolder}",
             "program": "${workspaceFolder}/bin/pulls.py",
-             "args": ["-p", "repositories.test.json", "init", "-b", "feature" ], 
+             "args": ["-p", "repositories.test.json", "init", "-b", "feature" , "-o", "modbus2mqtt"], 
             "console": "integratedTerminal"
         },
         {
