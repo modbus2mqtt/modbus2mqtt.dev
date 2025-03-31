@@ -145,10 +145,9 @@ def dependencies( repositoryList, type:str, *args):
 
 def validatePullRequestArgs(pullrequest:str, pulltext:str)->repositories.PullRequest:
     pr = None
-    if args.pulltext == None:
+    if args.pulltext == None or pulltext == '':
         pr  = repositories.getPullrequestFromString(pullrequest)
-    else:
-        if pulltext == None:
+    if pr == None:
             raise repositories.SyncException( "Usage: Either --pullrequest or -- pulltext is required ")
     return pr
 
@@ -222,7 +221,10 @@ try:
             repositories.doWithRepositorys(repositorysList,'npminstall')
         case "syncpull":
             pr  = validatePullRequestArgs(args.pullrequest, args.pulltext)
-            prs = repositories.getRequiredPullrequests(  pullrequest=pr, pulltext=args.pulltext, owner=repositorysList.owner)
+            if args.pulltext == None or args.pulltext == '':
+                prs=[pr]
+            else:
+                prs = repositories.getRequiredPullrequests(  pullrequest=pr, pulltext=args.pulltext, owner=repositorysList.owner)
             repositories.doWithRepositorys(repositorysList,'syncpull',repositorysList, prs, args.branch)
         case "test":
             repositories.testRepositories(args.repositories)
@@ -256,13 +258,11 @@ try:
         case "dependencies":
             if args.dependencytype == 'pull':
                 pr = None
-                if args.pulltext == None:
+                if args.pulltext == None or args.pulltext == '':
                     pr  = repositories.getPullrequestFromString(args.pullrequest)
+                    prs = [pr]
                 else:
-                    if args.pulltext == None:
-                        raise repositories.SyncException( "Usage: Either --pullrequest or -- pulltext is required ")
-                
-                prs = repositories.getRequiredPullrequests( pullrequest=pr,owner=repositorysList.owner, pulltext=args.pulltext)      
+                    prs = repositories.getRequiredPullrequests( pullrequest=pr,owner=repositorysList.owner, pulltext=args.pulltext)      
                 for repository in repositorysList.repositorys:
                     for pr in prs:
                         if repository.name == pr.name:

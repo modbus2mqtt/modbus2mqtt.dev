@@ -430,9 +430,9 @@ def newBranch(repository:Repository, branch:str):
         executeSyncCommand(['git','checkout','-b', branch ])
     executeSyncCommand(['git','switch', branch])
     executeSyncCommand(['git','fetch'])
-    
+# not used?    
 def getPullRequests(repository:Repository, repositorys:Repositorys):
-    pullrequest = getRequiredPullrequests(repository, repositorys)
+    return getRequiredPullrequests(repository, repositorys)
 
 def checkFileExistanceInGithubBranch(owner, repo, branch, file):
     result = json.loads(ghapi('GET','/repos/'+ owner +'/' + repo + '/git/trees/'+ branch +'?recursive=true'))
@@ -486,7 +486,7 @@ def getPullrequestId(repository:Repository, repositorys:Repositorys):
                     return entry["number"]
 
     return None
-def getpulltext( pullrequest:PullRequest, baseowner:str)->str:
+def getpulltextFromGithub( pullrequest:PullRequest, baseowner:str)->str:
 
     js = json.loads(executeSyncCommand([ "gh", "pr", "view" , str( pullrequest.number), 
         "-R", baseowner + "/" + pullrequest.name,
@@ -519,13 +519,11 @@ def getRequiredReposFromPRDescription(prDescription:str,pullrequest:PullRequest)
     return rc
 
 def getRequiredPullrequests( pullrequest:PullRequest= None, pulltext:str = None, owner:str=None )->list[PullRequest]:
-    if pulltext == None and owner != None and pullrequest != None:
-        pulltext = getpulltext( pullrequest, owner )
-    if pulltext != None:
-        return getRequiredReposFromPRDescription(pulltext,pullrequest)
-    else:
-        raise SyncException("Argument pulltext or owner and Pullrequest are required")
+    if pulltext == None or pulltext == '':
+        pulltext = getpulltextFromGithub( pullrequest, owner )
+    return getRequiredReposFromPRDescription(pulltext,pullrequest)
 
+  
 def updatepulltextRepository(repository:Repository, repositorysList: Repositorys, pullRepositorys):
     requiredText = "required PRs: "
     for p in pullRepositorys:
@@ -533,7 +531,7 @@ def updatepulltextRepository(repository:Repository, repositorysList: Repositorys
     if requiredText.endswith(", "):
         requiredText = requiredText[:-2]
     if repository.pullrequestid != None:
-        txt = getpulltext(PullRequest(repository.name,repository.pullrequestid), repositorysList.owner)
+        txt = getpulltextFromGithub(PullRequest(repository.name,repository.pullrequestid), repositorysList.owner)
         pulltext = re.sub(
            requiredRepositorysRe, 
            "", 
