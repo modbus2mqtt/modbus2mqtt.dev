@@ -666,7 +666,7 @@ def dependenciesRepository(repository:Repository,  repositorysList: Repositorys,
         executeSyncCommand( ['git','switch', 'release'] )
         executeSyncCommand( ["git", "pull", "-X", "theirs"] )
         executeSyncCommand( ['git','merge', '-X','theirs', 'main'] )
-        updatePackageJsonReferences(repository, repositorysList, dependencytype, prRepository)    
+        updatePackageJsonReferences(repository, repositorysList, dependencytype, pullRequests)    
         if  getLocalChanges() > 0:
             # makes sure, the version number in local pgkJson is new
             # local changes are from updated dependencies            

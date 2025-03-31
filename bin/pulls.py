@@ -202,7 +202,7 @@ try:
     args = parser.parse_args()
     repositorysList = repositories.readrepositorys(args.repositories, args.owner)
     if repositorysList == None:
-        raise repositories.SyncException("Unable to read " + args.repositories " invalid file content?")
+        raise repositories.SyncException("Unable to read " + args.repositories + " invalid file content?")
 except Exception as err:
     repositories.eprint(sys.argv)
     for arg in err.args:
