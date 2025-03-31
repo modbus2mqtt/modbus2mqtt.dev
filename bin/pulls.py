@@ -199,6 +199,7 @@ parser_dependencies.add_argument("-t", "--pulltext", help="Pulltext " , type= st
 
 parser_dependencies.set_defaults(command='dependencies')
 try:
+    repositories.eprint( sys.orig_argv)
     args = parser.parse_args()
     repositorysList = repositories.readrepositorys(args.repositories, args.owner)
     if repositorysList == None:
