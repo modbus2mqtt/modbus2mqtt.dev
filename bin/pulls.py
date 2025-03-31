@@ -215,7 +215,7 @@ try:
         case "sync":
             repositories.doWithRepositorys(repositorysList,'sync',repositorysList)
         case "install":
-            repositories.doWithRepositorys(repositorysList,'npminstall',repositorysList)
+            repositories.doWithRepositorys(repositorysList,'npminstall')
         case "syncpull":
             pr  = validatePullRequestArgs(args.pullrequest, args.pulltext)
             prs = repositories.getRequiredPullrequests(  pullrequest=pr, pulltext=args.pulltext, owner=repositorysList.owner)
