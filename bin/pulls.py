@@ -130,8 +130,7 @@ def initRepositorys(branch):
         finally:
             os.chdir(pwd)
     repositories.doWithRepositorys(repositorysList,'newbranch', branch)
-    repositories.doWithRepositorys(repositorysList,'npminstall')
-
+ 
 
 def dependencies( repositoryList, type:str, *args):
     mainrepository = repositoryList['mainrepository']
@@ -181,6 +180,7 @@ parser_sync = subparsers.add_parser("sync", help="sync: pulls main and current b
 parser_sync.set_defaults(command='sync')
 parser_install = subparsers.add_parser("install", help="install: loads required components (E.g. npm install)")
 parser_install.set_defaults(command='install')
+parser_install.add_argument("-c","--ci", help="runs with npm ci instead of npm install" ,  nargs='?', type= bool, default=False)
 
 parser_test = subparsers.add_parser("test", help="test: execute npm test for all repositorys")
 parser_test.set_defaults(command='test')
@@ -223,7 +223,9 @@ try:
         case "sync":
             repositories.doWithRepositorys(repositorysList,'sync',repositorysList)
         case "install":
-            repositories.doWithRepositorys(repositorysList,'npminstall')
+            repositories.doWithRepositorys(repositorysList,'npminstall', args.ci)
+        case "build":
+            repositories.doWithRepositorys(repositorysList,'build')
         case "syncpull":
             pr  = validatePullRequestArgs(args.pullrequest, args.pulltext)
             if args.pulltext == None or args.pulltext == '':
@@ -232,7 +234,7 @@ try:
                 prs = repositories.getRequiredPullrequests(  pullrequest=pr, pulltext=args.pulltext, owner=repositorysList.owner)
             repositories.doWithRepositorys(repositorysList,'syncpull',repositorysList, prs, args.branch)
         case "test":
-            repositories.testRepositories(args.repositories)
+            repositories.testRepositories(args.repositories, args.owner)
         case "testorwait":
             if args.pullrequest == None or args.pullrequest == '':
                 raise repositories.SyncException()

@@ -20,9 +20,8 @@
             "type": "debugpy",
             "request": "launch",
             "cwd": "${workspaceFolder}",
-            "program": "${workspaceFolder}/bin/pulls.py",
-             "args": [  "-p", "repositories.test.json", "-o", "modbus2mqtt", "syncpull", "--pullrequest", "test1:5", "--pulltext", "Some Text\
-required PRs: test1:5", "pull"], 
+            "program": "${workspaceFolder}/bin/testall.py",
+             "args": [   "repositories.json", "modbus2mqtt"], 
             "console": "integratedTerminal"
         },  
         {

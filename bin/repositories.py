@@ -307,8 +307,8 @@ def waitForMainTestPullRequest(repositories:Repositorys, mainTestPullRequest:Pul
 def testRepository(repositoriesFile:str):
     eprint( executeSyncCommand(["npm", 'run', 'test']).decode("utf-8"))
 
-def testRepositories(repositoriesFile:str):
-            eprint( executeSyncCommand(["bin/testall.py", repositoriesFile]).decode("utf-8"))
+def testRepositories(repositoriesFile:str, login:str):
+    eprint( executeSyncCommand(["bin/testall.py", repositoriesFile, login]).decode("utf-8"))
 
 # syncs main from original github source to local git branch (E.g. 'feature')
 def syncRepository(repository: Repository, repositorys:Repositorys):
@@ -694,13 +694,21 @@ def prepareGitForReleaseRepository(repository:Repository,  repositorysList: Repo
        raise SyncException("Git origin is not " + repositorysList.owner + '/' + repository.name )
     executeSyncCommand(['git', 'switch', 'release']).decode("utf-8")
     repository.branch = "release"
-def npminstallRepository(repository:Repository):
-    executeSyncCommand(['npm','install'])
-    
+def npminstallRepository(repository:Repository, ci:bool):
+    if ci:
+        executeSyncCommand(['npm','ci'])
+    else:
+        executeSyncCommand(['npm','install'])
+
+def buildRepository(repository:Repository):
+    executeSyncCommand(['npm','run', 'build'])
+ 
 repositoryFunctions = {
     'compare' : compareRepository,
     'sync' : syncRepository,
     'npminstall':npminstallRepository,
+    'build':buildRepository,
+    'test':testRepository,
     'syncpull': syncpullRepository,
     'push' : pushRepository,
     'createpull' : createpullRepository,
