@@ -604,8 +604,8 @@ def updatePackageJsonReferences(repository:Repository,  repositorysList: Reposit
                         eprint("package.json is missing in " + newgithubName
                         + ".\nUnable to set remote reference                                                                                                                                                                                                                                in modbus2mqtt/" + pr.name + '/package.json'
                         + "\nContinuing with invalid reference")
-    if len(npmuninstallargs ) > 0:
-        executeSyncCommand(["npm", "uninstall"] + npmuninstallargs)
+#    if len(npmuninstallargs ) > 0:
+#        executeSyncCommand(["npm", "uninstall"] + npmuninstallargs)
     try:        
         executeSyncCommand(["npm", "install"]  + npminstallargs)
         return len(npminstallargs ) > 0
