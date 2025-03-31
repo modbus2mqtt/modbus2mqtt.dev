@@ -13,6 +13,18 @@
              "args": ["-p", "repositories.test.json", "install" ], 
             "console": "integratedTerminal"
         },
+
+
+        {
+            "name": "pull test",
+            "type": "debugpy",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "program": "${workspaceFolder}/bin/pulls.py",
+             "args": [  "-p", "repositories.test.json", "-o", "modbus2mqtt", "syncpull", "--pullrequest", "test1:5", "--pulltext", "Some Text\
+required PRs: test1:5", "pull"], 
+            "console": "integratedTerminal"
+        },  
         {
             "name": "pull init",
             "type": "debugpy",
@@ -94,7 +106,7 @@
             "request": "launch",
             "cwd": "${workspaceFolder}",
             "program": "${workspaceFolder}/bin/pulls.py",
-             "args": [ "testorwait", "--pullrequest", "angular:3","--pulltext", "Test\\nrequired PRs: angular:3, server:105"], 
+             "args": [ "testorwait",  "angular:3", "Test\\nrequired PRs: angular:3, server:105"], 
             "console": "integratedTerminal"
         },
         {
