@@ -94,7 +94,7 @@
             "request": "launch",
             "cwd": "${workspaceFolder}",
             "program": "${workspaceFolder}/bin/pulls.py",
-             "args": [ "testorwait", "angular:3", "Test\\nrequired PRs: angular:3, server:105"], 
+             "args": [ "testorwait", "--pullrequest", "angular:3","--pulltext", "Test\\nrequired PRs: angular:3, server:105"], 
             "console": "integratedTerminal"
         },
         {
