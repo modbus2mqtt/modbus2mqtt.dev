@@ -260,8 +260,9 @@ try:
                         macngxinlib="/opt/homebrew/var/homebrew/linked/nginx"
                         if not ( os.path.isdir("/var/lib/nginx") or os.path.isdir(macngxinlib))or shutil.which("mosquitto_sub")is None:
                             repositories.eprint("testorwait 4")
-                            os.chdir("server")
                             repositories.eprint(os.getcwd())
+                            os.chdir("server")
+                            
                             repositories.eprint("testorwait 5")
                             repositories.eprint(repositories.executeSyncCommand([os.path.join("cypress", "servers","installPackages")]))
                             repositories.eprint("starting")
