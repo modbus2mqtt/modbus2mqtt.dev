@@ -240,10 +240,11 @@ try:
         case "test":
             testall.testall(repositorysList)
         case "testorwait":
+            repositories.eprint("testorwait")
             if args.pullrequest == None or args.pullrequest == '':
                 raise repositories.SyncException()
             else:
-              
+                repositories.eprint("testorwait 1")
                 pr  = repositories.getPullrequestFromString(args.pullrequest)
                 requiredPrs = repositories.getRequiredReposFromPRDescription(args.pulltext,pr)
                 maintestPullrequest = requiredPrs[0]
@@ -251,13 +252,17 @@ try:
                     raise repositories.SyncException( "Error: " + args.pullrequest + " is not in " + args.pulltext)
                 if pr == maintestPullrequest:
                     # Tests will be executed in the workflow itself
+                    repositories.eprint("testorwait 2")
                     if not args.noexec:
                         testall.testall(repositorysList)
                     else:
+                        repositories.eprint("testorwait 3")
                         macngxinlib="/opt/homebrew/var/homebrew/linked/nginx"
                         if not ( os.path.isdir("/var/lib/nginx") or os.path.isdir(macngxinlib))or shutil.which("mosquitto_sub")is None:
+                            repositories.eprint("testorwait 4")
                             os.chdir("server")
                             repositories.eprint(os.getcwd())
+                            repositories.eprint("testorwait 5")
                             repositories.eprint(repositories.executeSyncCommand([os.path.join("cypress", "servers","installPackages")]))
                             repositories.eprint("starting")
                             
