@@ -237,7 +237,7 @@ try:
                 prs = repositories.getRequiredPullrequests(  pullrequest=pr, pulltext=args.pulltext, owner=repositorysList.owner)
             repositories.doWithRepositorys(repositorysList,'syncpull',repositorysList, prs, args.branch)
         case "test":
-            repositories.testRepositories(args.repositories, args.owner)
+            repositories.testRepositories(args.repositories, repositorysList.login)
         case "testorwait":
             if args.pullrequest == None or args.pullrequest == '':
                 raise repositories.SyncException()
