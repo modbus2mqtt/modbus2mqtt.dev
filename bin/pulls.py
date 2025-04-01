@@ -7,7 +7,7 @@ import json
 import os
 import repositories
 from typing import Dict
-
+import testall
 class PullException(Exception):
     pass
 @dataclass
@@ -237,7 +237,7 @@ try:
                 prs = repositories.getRequiredPullrequests(  pullrequest=pr, pulltext=args.pulltext, owner=repositorysList.owner)
             repositories.doWithRepositorys(repositorysList,'syncpull',repositorysList, prs, args.branch)
         case "test":
-            repositories.testRepositories(args.repositories, repositorysList.login)
+            testall.testall(repositorysList)
         case "testorwait":
             if args.pullrequest == None or args.pullrequest == '':
                 raise repositories.SyncException()
@@ -251,7 +251,7 @@ try:
                 if pr == maintestPullrequest:
                     # Tests will be executed in the workflow itself
                     if not args.noexec:
-                        repositories.testRepositories(args.repositories, repositorysList.owner)
+                        testall.testall(repositorysList)
                     print("type=testrunner")                  
                 else:
                     # wait happens here. If the testrunner action fails, this will exit(2)

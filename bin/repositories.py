@@ -14,6 +14,7 @@ from typing import Any, Dict
 import typing
 import time
 from threading import Thread
+import testall
 
 @dataclass
 class PullTexts:
@@ -330,9 +331,6 @@ def testRepository(repository: Repository):
     print("::group::Unit tests for " + repository.name)
     eprint( executeSyncCommand(args).decode("utf-8"))
     print( '::endgroup::' )
-
-def testRepositories(repositoriesFile:str, login:str):
-     eprint( executeSyncCommand(["bin/testall.py", repositoriesFile, login]).decode("utf-8"))
 
 # syncs main from original github source to local git branch (E.g. 'feature')
 def syncRepository(repository: Repository, repositorys:Repositorys):
