@@ -257,8 +257,10 @@ try:
                         macngxinlib="/opt/homebrew/var/homebrew/linked/nginx"
                         if not ( os.path.isdir("/var/lib/nginx") or os.path.isdir(macngxinlib))or shutil.which("mosquitto_sub")is None:
                             print("::group::Cypress initialization")
+                            os.chdir("server")
                             repositories.eprint(repositories.executeSyncCommand([os.path.join("cypress", "servers","installPackages")]))
                             repositories.eprint(repositories.executeSyncCommand([os.path.join("cypress", "servers", "startRunningServers")]))
+
                             print( '::endgroup::' )
                     print("type=testrunner")                  
                 else:
