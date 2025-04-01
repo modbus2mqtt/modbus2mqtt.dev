@@ -30,9 +30,24 @@ class TestStatus(Enum):
     success = 3
     allfailed = 4
     notstarted = 0
-
-@dataclass
 class PullRequest:
+        
+    def __init__(self, name:str,number:int):
+        self.name = name
+        self.number = number
+    def _is_valid_operand(self, other):
+        return (hasattr(other, "name") and
+                hasattr(other, "number"))
+
+    def __eq__(self, other):
+        if not self._is_valid_operand(other):
+            return NotImplemented
+        return self.name.lower() == other.name.lower
+
+    def __lt__(self, other):
+        if not self._is_valid_operand(other):
+            return NotImplemented
+        return self.name.lower() < other.name.lower
     name: str
     number: int
 
@@ -502,7 +517,7 @@ def getpulltextFromGithub( pullrequest:PullRequest, baseowner:str)->str:
         "--json", "body"  ]))
     return  js['body']
 
-requiredRepositorysRe = r"\s*required PRs: (.*)\s*"
+requiredRepositorysRe = r"\/([^\/]*)\/pulls\/(\d+)"
 
 def getPullrequestFromString(prname:str )->PullRequest:
     pr = prname.split(':')
@@ -513,13 +528,9 @@ def getPullrequestFromString(prname:str )->PullRequest:
 def getRequiredReposFromPRDescription(prDescription:str,pullrequest:PullRequest)->list[PullRequest]:
     rc:list[PullRequest] = []      
     if( prDescription != None):
-        match = re.search( requiredRepositorysRe, prDescription)
-        if None != match and len(match.groups()) == 1:
-            prtexts = match.groups()[0].split(', ')
-            for prtext in prtexts:
-                prx = prtext.split(':')
-                if len(prx) == 2:
-                    rc.append(PullRequest(prx[0],int(prx[1])))
+        matches = re.findall( requiredRepositorysRe, prDescription, re.MULTILINE )
+        for m in matches:
+           rc.append(PullRequest(m[0],int(m[1])))
     if len(rc)==0:
         if pullrequest != None:
             rc.append(pullrequest)
@@ -534,9 +545,12 @@ def getRequiredPullrequests( pullrequest:PullRequest= None, pulltext:str = None,
 
   
 def updatepulltextRepository(repository:Repository, repositorysList: Repositorys, pullRepositorys):
-    requiredText = "required PRs: "
+    requiredText = "### Dependant Pullrequests\n" + \
+                    "|Repository|Pull Request|\n" + \
+                    "|----|----|\n"
     for p in pullRepositorys:
-        requiredText += p.name + ":" + str(p.pullrequestid) + ", "
+        prnumber = str(p.pullrequestid)
+        requiredText +=  "|["+ p.name +"](https://github.com/"+repositorysList.owner +"/"+ p.name +"/pulls/"+ prnumber+")|"+ prnumber+"|\n"
     if requiredText.endswith(", "):
         requiredText = requiredText[:-2]
     if repository.pullrequestid != None:

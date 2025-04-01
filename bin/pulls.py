@@ -245,13 +245,10 @@ try:
               
                 pr  = repositories.getPullrequestFromString(args.pullrequest)
                 requiredPrs = repositories.getRequiredReposFromPRDescription(args.pulltext,pr)
-                maintestPullrequest = None
-                for idx, p in enumerate(requiredPrs):
-                    if p.name == pr.name and pr.number == p.number and idx == 0:
-                        maintestPullrequest = p
+                maintestPullrequest = requiredPrs[0]
                 if maintestPullrequest == None:
                     raise repositories.SyncException( "Error: " + args.pullrequest + " is not in " + args.pulltext)
-                if args.pullrequest == maintestPullrequest.name:
+                if pr == maintestPullrequest.name:
                     # Tests will be executed in the workflow itself
                     if not args.noexec:
                         repositories.testRepositories(args.repositories, args.owner)

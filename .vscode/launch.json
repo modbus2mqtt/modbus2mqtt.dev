@@ -115,7 +115,12 @@ required PRs: specification:3"],
             "request": "launch",
             "cwd": "${workspaceFolder}",
             "program": "${workspaceFolder}/bin/pulls.py",
-             "args": [ "testorwait",  "angular:3", "Test\\nrequired PRs: angular:3, server:105"], 
+             "args": [ "testorwait",  "--noexec", "angular:3", "specificationInfrastructure fixes\
+### Dependant Pullrequests\
+|Repository|Pull Request|\
+|----|----|\
+|[specification](https://github.com/modbus2mqtt/specification/pulls/3)|3|\
+|[angular](https://github.com/modbus2mqtt/angular/pulls/3)|3|"], 
             "console": "integratedTerminal"
         },
         {
