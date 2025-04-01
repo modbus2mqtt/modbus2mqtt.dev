@@ -11,13 +11,7 @@ def testall(repositorysList)->bool:
             
             
     if os.path.isdir(os.path.join("cypress", "e2e")):
-            print("::group::Cypress initialization")
-            macngxinlib="/opt/homebrew/var/homebrew/linked/nginx"
- 
-            if not ( os.path.isdir("/var/lib/nginx") or os.path.isdir(macngxinlib))or shutil.which("mosquitto_sub")is None:
-                repositories.executeSyncCommand([os.path.join("cypress", "servers","installPackages")])
-            repositories.executeSyncCommand([os.path.join("cypress", "servers", "startRunningServers")])
-            print( '::endgroup::' )
+
             print("::group::Cypress run tests")
             repositories.eprint(repositories.executeSyncCommand(["npx", "cypress", "run"]).decode("utf-8"))
             print( '::endgroup::' )
