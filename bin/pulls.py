@@ -251,7 +251,7 @@ try:
                 if pr == maintestPullrequest:
                     # Tests will be executed in the workflow itself
                     if not args.noexec:
-                        repositories.testRepositories(args.repositories, args.owner)
+                        repositories.testRepositories(args.repositories, repositorysList.owner)
                     print("type=testrunner")                  
                 else:
                     # wait happens here. If the testrunner action fails, this will exit(2)
