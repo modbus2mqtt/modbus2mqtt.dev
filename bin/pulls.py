@@ -251,6 +251,7 @@ try:
               for p in requiredPrs:
                 if p.name == maintestPullrequest.name:
                     # Tests will be executed in the workflow itself
+                    repositories.testRepositories(args.repositories, args.owner)
                     print("type=testrunner")                  
                 else:
                     # wait happens here. If the testrunner action fails, this will exit(2)

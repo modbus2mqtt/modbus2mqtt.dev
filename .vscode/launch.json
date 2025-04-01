@@ -20,10 +20,20 @@
             "type": "debugpy",
             "request": "launch",
             "cwd": "${workspaceFolder}",
+            "program": "${workspaceFolder}/bin/pulls.py",
+             "args": [   "-o", "modbus2mqtt", "testorwait", "specification:3", "Some Text\
+required PRs: specification:3"], 
+            "console": "integratedTerminal"
+        },  
+        {
+            "name": "pull testall",
+            "type": "debugpy",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
             "program": "${workspaceFolder}/bin/testall.py",
              "args": [   "repositories.json", "modbus2mqtt"], 
             "console": "integratedTerminal"
-        },  
+        }, 
         {
             "name": "pull init",
             "type": "debugpy",
