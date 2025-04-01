@@ -190,7 +190,7 @@ parser_testorwait = subparsers.add_parser("testorwait", help="Executed via githu
 parser_testorwait.set_defaults(command='testorwait')
 parser_testorwait.add_argument( "pullrequest", help="Pull request <repository name>:<number> ", type = str)
 parser_testorwait.add_argument("pulltext", help="Description of pull request ", type = str)
-parser_testorwait.add_argument("-n", "--noexec", help="Just evaluate whether this workflow will wait for tests or will execute it",  nargs='?', type= bool, default=False)
+parser_testorwait.add_argument("-n", "--noexec", help="Just evaluate whether this workflow will wait for tests or will execute it", action='store_true')
 
 
 parser_release = subparsers.add_parser("release", help="releases all repositorys")
@@ -243,16 +243,15 @@ try:
                 raise repositories.SyncException()
             else:
               
-              pr  = repositories.getPullrequestFromString(args.pullrequest)
-              requiredPrs = repositories.getRequiredReposFromPRDescription(args.pulltext,pr)
-              maintestPullrequest = None
-              for idx, p in enumerate(requiredPrs):
-                if p.name == pr.name and pr.number == p.number and idx == 0:
-                    maintestPullrequest = p
-              if maintestPullrequest == None:
-                  raise repositories.SyncException( "Error: " + args.pullrequest + " is not in " + args.pulltext)
-              for p in requiredPrs:
-                if p.name == maintestPullrequest.name:
+                pr  = repositories.getPullrequestFromString(args.pullrequest)
+                requiredPrs = repositories.getRequiredReposFromPRDescription(args.pulltext,pr)
+                maintestPullrequest = None
+                for idx, p in enumerate(requiredPrs):
+                    if p.name == pr.name and pr.number == p.number and idx == 0:
+                        maintestPullrequest = p
+                if maintestPullrequest == None:
+                    raise repositories.SyncException( "Error: " + args.pullrequest + " is not in " + args.pulltext)
+                if args.pullrequest == maintestPullrequest.name:
                     # Tests will be executed in the workflow itself
                     if not args.noexec:
                         repositories.testRepositories(args.repositories, args.owner)
