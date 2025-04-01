@@ -8,6 +8,7 @@ import os
 import repositories
 from typing import Dict
 import testall
+import shutil
 class PullException(Exception):
     pass
 @dataclass
