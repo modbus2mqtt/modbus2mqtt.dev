@@ -248,7 +248,7 @@ try:
                 maintestPullrequest = requiredPrs[0]
                 if maintestPullrequest == None:
                     raise repositories.SyncException( "Error: " + args.pullrequest + " is not in " + args.pulltext)
-                if pr == maintestPullrequest.name:
+                if pr == maintestPullrequest:
                     # Tests will be executed in the workflow itself
                     if not args.noexec:
                         repositories.testRepositories(args.repositories, args.owner)

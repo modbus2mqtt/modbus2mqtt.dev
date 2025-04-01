@@ -115,7 +115,7 @@ required PRs: specification:3"],
             "request": "launch",
             "cwd": "${workspaceFolder}",
             "program": "${workspaceFolder}/bin/pulls.py",
-             "args": [ "testorwait",  "--noexec", "angular:3", "specificationInfrastructure fixes\
+             "args": [ "testorwait",  "--noexec", "specification:3", "specificationInfrastructure fixes\
 ### Dependant Pullrequests\
 |Repository|Pull Request|\
 |----|----|\

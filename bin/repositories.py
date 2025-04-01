@@ -42,12 +42,12 @@ class PullRequest:
     def __eq__(self, other):
         if not self._is_valid_operand(other):
             return NotImplemented
-        return self.name.lower() == other.name.lower
+        return self.name.lower() == other.name.lower()
 
     def __lt__(self, other):
         if not self._is_valid_operand(other):
             return NotImplemented
-        return self.name.lower() < other.name.lower
+        return self.name.lower() < other.name.lower()
     name: str
     number: int
 
@@ -65,12 +65,12 @@ class Repository:
     def __eq__(self, other):
         if not self._is_valid_operand(other):
             return NotImplemented
-        return self.name.lower() == other.name.lower
+        return self.name.lower() == other.name.lower()
 
     def __lt__(self, other):
         if not self._is_valid_operand(other):
             return NotImplemented
-        return self.name.lower() < other.name.lower
+        return self.name.lower() < other.name.lower()
     name: str
     branch: str
     isForked: bool = False
