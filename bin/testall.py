@@ -14,11 +14,12 @@ try:
       
     if os.path.isdir(os.path.join("cypress", "e2e")):
         print("::group::Cypress E2E tests")
+        serverpath = os.path.join(os.getcwd(), 'server')
         if not os.path.isdir("/var/lib/nginx" or shutil.which("mosquitto_sub")is not None):
-            repositories.executeSyncCommand([os.path.join("cypress", "servers","installPackages")])
-        repositories.executeSyncCommand([os.path.join("cypress", "servers","startRunningServers")])
-        repositories.executeSyncCommand(["npx", "cypress", "run", "--reporter", "json" ,"--reporter-options" "output=cypress-mocha.json"])
-        repositories.executeSyncCommand([os.path.join("cypress", "servers","killServers")])
+            repositories.executeSyncCommandWithCwd([os.path.join("cypress", "servers","installPackages")], serverpath)
+        repositories.executeSyncCommandWithCwd([os.path.join("cypress", "servers","startRunningServers")], serverpath)
+        repositories.executeSyncCommandWithCwd(["npx", "cypress", "run", "--reporter", "json" ,"--reporter-options" "output=cypress-mocha.json"], serverpath)
+        repositories.executeSyncCommandWithCwd([os.path.join("cypress", "servers","killServers")], serverpath)
         print( '::endgroup::' )
     else:
         repositories.eprint("No Cypress tests")

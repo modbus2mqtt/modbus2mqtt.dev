@@ -190,6 +190,8 @@ parser_testorwait = subparsers.add_parser("testorwait", help="Executed via githu
 parser_testorwait.set_defaults(command='testorwait')
 parser_testorwait.add_argument( "pullrequest", help="Pull request <repository name>:<number> ", type = str)
 parser_testorwait.add_argument("pulltext", help="Description of pull request ", type = str)
+parser_testorwait.add_argument("-n", "--noexec", help="Just evaluate whether this workflow will wait for tests or will execute it",  nargs='?', type= bool, default=False)
+
 
 parser_release = subparsers.add_parser("release", help="releases all repositorys")
 parser_release.set_defaults(command='release')
@@ -240,6 +242,7 @@ try:
             if args.pullrequest == None or args.pullrequest == '':
                 raise repositories.SyncException()
             else:
+              
               pr  = repositories.getPullrequestFromString(args.pullrequest)
               requiredPrs = repositories.getRequiredReposFromPRDescription(args.pulltext,pr)
               maintestPullrequest = None
@@ -251,7 +254,8 @@ try:
               for p in requiredPrs:
                 if p.name == maintestPullrequest.name:
                     # Tests will be executed in the workflow itself
-                    repositories.testRepositories(args.repositories, args.owner)
+                    if not args.noexec:
+                        repositories.testRepositories(args.repositories, args.owner)
                     print("type=testrunner")                  
                 else:
                     # wait happens here. If the testrunner action fails, this will exit(2)
