@@ -5,6 +5,7 @@ from collections.abc import MutableSequence
 from dataclasses import dataclass
 import json
 import os
+import stat
 import repositories
 from typing import Dict
 import testall
@@ -258,16 +259,24 @@ try:
                     else:
                         repositories.eprint("testorwait 3")
                         macngxinlib="/opt/homebrew/var/homebrew/linked/nginx"
-                        if not ( os.path.isdir("/var/lib/nginx") or os.path.isdir(macngxinlib))or shutil.which("mosquitto_sub")is None:
+                        # if not ( os.path.isdir("/var/lib/nginx") or os.path.isdir(macngxinlib))or shutil.which("mosquitto_sub")is None:
+                        if True:
                             repositories.eprint("testorwait 4")
                             repositories.eprint(os.getcwd())
-                            os.chdir("server")
-                            
+                            import urllib.request
+                            for file in ['installPackages','startRunningServers']:
+                                with urllib.request.urlopen('https://raw.githubusercontent.com/modbus2mqtt/server/refs/heads/main/cypress/servers/' + file ) as f:
+                                    html = f.read().decode('utf-8')
+                                    text_file = open(file, "w")
+                                    text_file.write(html)
+                                    text_file.close()
+                                    st = os.stat(file)
+                                    os.chmod(file, st.st_mode | stat.S_IEXEC)
                             repositories.eprint("testorwait 5")
-                            repositories.eprint(repositories.executeSyncCommand([os.path.join("cypress", "servers","installPackages")]))
+                            repositories.eprint(repositories.executeSyncCommand(["./installPackages", "nginx"]))
                             repositories.eprint("starting")
                             
-                            repositories.eprint(repositories.executeSyncCommand([os.path.join("cypress", "servers", "startRunningServers")]))
+                            repositories.eprint(repositories.executeSyncCommand([ "./startRunningServers"]))
                             repositories.eprint("success")
                            
                     print("type=testrunner")                  
