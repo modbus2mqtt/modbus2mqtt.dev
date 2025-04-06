@@ -143,3 +143,9 @@ specification.shared/
 server.shared/
 hassio-addon-repository/
 bin/projects.py
+.DS_Store
+nginx.conf
+nginx.pid
+nginx.error.log
+nohup.out
+

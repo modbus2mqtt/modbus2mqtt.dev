@@ -741,8 +741,8 @@ repositoryFunctions = {
 }
 
 
-def doWithRepositorys( repositorys:Repositorys, command:str, *args:Any ): 
-    eprint("step: " + command, sep=' ', end='', flush=True )
+def doWithRepositorys( repositorys:Repositorys, repoFunction:Any, *args:Any ): 
+    eprint("step: " + repoFunction.__name__, sep=' ', end='', flush=True )
     pwd = os.getcwd()
     for repository in repositorys.repositorys:
         global currentRepository 
@@ -752,7 +752,7 @@ def doWithRepositorys( repositorys:Repositorys, command:str, *args:Any ):
         os.chdir(repository.name)
         eprint(os.getcwd())
         try:
-            repositoryFunctions[command]( repository, *args)
+            repoFunction( repository, *args)
         finally:
             os.chdir(pwd)
     eprint("")

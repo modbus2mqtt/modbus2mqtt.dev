@@ -89,20 +89,20 @@ def buildPulltext(allRepositorys:repositories.Repositorys, pullRepositorys, issu
 
 
 def sync(repositorysList:repositories.Repositorys):
-    repositories.doWithRepositorys(repositorysList,'sync')
+    repositories.doWithRepositorys(repositorysList, repositories.syncRepository)
         
 def createPullRequests( repositorysList:repositories.Repositorys, issue:Issue):
     try:
         # compareRepositorys(repositorys)
-        repositories.doWithRepositorys(repositorysList,'sync', repositorysList)
-        repositories.doWithRepositorys(repositorysList,'push', repositorysList)
-        repositories.doWithRepositorys(repositorysList,'compare', repositorysList)
+        repositories.doWithRepositorys(repositorysList, repositories.syncRepository, repositorysList)
+        repositories.doWithRepositorys(repositorysList, repositories.pushRepository, repositorysList)
+        repositories.doWithRepositorys(repositorysList, repositories.compareRepository, repositorysList)
         pullRepositorys = getPullRepositorys(repositorysList)
-        repositories.doWithRepositorys(repositorysList,'readpulltext')
-        repositories.doWithRepositorys(repositorysList,'dependencies', repositorysList,"remote",None)
+        repositories.doWithRepositorys(repositorysList, repositories.readpulltextRepository)
+        repositories.doWithRepositorys(repositorysList, repositories.dependenciesRepository, repositorysList,"remote",None)
         pulltext = buildPulltext(repositorysList, pullRepositorys, issue)
-        repositories.doWithRepositorys(repositorysList,'createpull', repositorysList, pullRepositorys, pulltext, issue )
-        repositories.doWithRepositorys(repositorysList,'updatepulltext', repositorysList, pullRepositorys , pulltext)
+        repositories.doWithRepositorys(repositorysList, repositories.createpullRepository, repositorysList, pullRepositorys, pulltext, issue )
+        repositories.doWithRepositorys(repositorysList, repositories.updatepulltextRepository, repositorysList, pullRepositorys , pulltext)
     except Exception as err:
         repositories.eprint("Creating aborted =====")
         for arg in err.args:
@@ -131,7 +131,7 @@ def initRepositorys(branch):
    
         finally:
             os.chdir(pwd)
-    repositories.doWithRepositorys(repositorysList,'newbranch', branch)
+    repositories.doWithRepositorys(repositorysList, repositories.newbranchRepository, branch)
  
 
 def dependencies( repositoryList, type:str, *args):
@@ -187,6 +187,7 @@ parser_build = subparsers.add_parser("build", help="build: execute npm run build
 parser_build.set_defaults(command='build')
 parser_test = subparsers.add_parser("test", help="test: execute npm test for all repositorys")
 parser_test.set_defaults(command='test')
+parser_test.add_argument("test", help="runs with npm ci instead of npm install", choices=["test", "startServers", "killServers"], default="test")
 
 parser_testorwait = subparsers.add_parser("testorwait", help="Executed via github event pull_request")
 parser_testorwait.set_defaults(command='testorwait')
@@ -224,22 +225,29 @@ try:
         case "init":
             initRepositorys(args.branch)
         case "branch":
-            repositories.doWithRepositorys(repositorysList,'newbranch', args.branch)
+            repositories.doWithRepositorys(repositorysList, repositories.newbranchRepository, args.branch)
         case "sync":
-            repositories.doWithRepositorys(repositorysList,'sync',repositorysList)
+            repositories.doWithRepositorys(repositorysList, repositories.syncRepository,repositorysList)
         case "install":
-            repositories.doWithRepositorys(repositorysList,'npminstall', args.ci)
+            repositories.doWithRepositorys(repositorysList, repositories.npminstallRepository, args.ci)
         case "build":
-            repositories.doWithRepositorys(repositorysList,'build')
+            repositories.doWithRepositorys(repositorysList, repositories.buildRepository)
         case "syncpull":
             pr  = validatePullRequestArgs(args.pullrequest, args.pulltext)
             if args.pulltext == None or args.pulltext == '':
                 prs=[pr]
             else:
                 prs = repositories.getRequiredPullrequests(  pullrequest=pr, pulltext=args.pulltext, owner=repositorysList.owner)
-            repositories.doWithRepositorys(repositorysList,'syncpull',repositorysList, prs, args.branch)
+            repositories.doWithRepositorys(repositorysList, repositories.syncpullRepository,repositorysList, prs, args.branch)
         case "test":
-            testall.testall(repositorysList)
+            match args.test:
+                case "test":
+                    testall.testall(repositorysList)
+                case  "startServers":
+                    testall.startRequiredApps()
+                case "killServers":
+                    testall.killRequiredApps()
+
         case "testorwait":
             repositories.eprint("testorwait")
             if args.pullrequest == None or args.pullrequest == '':
@@ -258,26 +266,10 @@ try:
                         testall.testall(repositorysList)
                     else:
                         repositories.eprint("testorwait 3")
-                        macngxinlib="/opt/homebrew/var/homebrew/linked/nginx"
-                        # if not ( os.path.isdir("/var/lib/nginx") or os.path.isdir(macngxinlib))or shutil.which("mosquitto_sub")is None:
+                        
+                        #if not ( os.path.isdir("/var/lib/nginx") or os.path.isdir(macngxinlib))or shutil.which("mosquitto_sub")is None:
                         if True:
-                            repositories.eprint("testorwait 4")
-                            repositories.eprint(os.getcwd())
-                            import urllib.request
-                            for file in ['installPackages','startRunningServers']:
-                                with urllib.request.urlopen('https://raw.githubusercontent.com/modbus2mqtt/server/refs/heads/main/cypress/servers/' + file ) as f:
-                                    html = f.read().decode('utf-8')
-                                    text_file = open(file, "w")
-                                    text_file.write(html)
-                                    text_file.close()
-                                    st = os.stat(file)
-                                    os.chmod(file, st.st_mode | stat.S_IEXEC)
-                            repositories.eprint("testorwait 5")
-                            repositories.eprint(repositories.executeSyncCommand(["./installPackages", "nginx"]))
-                            repositories.eprint("starting")
-                            
-                            repositories.eprint(repositories.executeSyncCommand([ "./startRunningServers"]))
-                            repositories.eprint("success")
+                            testall.checkRequiredApps()
                            
                     print("type=testrunner")                  
                 else:
@@ -306,13 +298,13 @@ try:
                     for pr in prs:
                         if repository.name == pr.name:
                             repository.pullrequestid = pr.number
-                repositories.doWithRepositorys(repositorysList,'dependencies', repositorysList, args.dependencytype, prs)
+                repositories.doWithRepositorys(repositorysList, repositories.dependenciesRepository, repositorysList, args.dependencytype, prs)
             else:
-                repositories.doWithRepositorys(repositorysList,'dependencies', repositorysList, args.dependencytype, None)
+                repositories.doWithRepositorys(repositorysList, repositories.dependenciesRepository, repositorysList, args.dependencytype, None)
 
         case "release":
-                repositories.doWithRepositorys(repositorysList,'prepareGitForRelease', repositorysList )
-                repositories.doWithRepositorys(repositorysList,'dependencies', repositorysList, 'release')
+                repositories.doWithRepositorys(repositorysList, repositories.prepareGitForReleaseRepository, repositorysList )
+                repositories.doWithRepositorys(repositorysList, repositories.dependenciesRepository, repositorysList, 'release')
 except repositories.SyncException as err1:
     repositories.eprint(repositories.currentRepository + ": " + err1.args[0])
     for arg in err1.args:
