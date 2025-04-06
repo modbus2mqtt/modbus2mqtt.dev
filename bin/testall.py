@@ -67,6 +67,8 @@ def startRequiredApps():
                 break
             count += 1
         if count == 12:
+            with open( "nohup.out") as f:
+                repositories.eprint(f.read())
             raise repositories.SyncException("Port " + str(port) + " is not up")
 
 def unlinkIfExist( file:str):
