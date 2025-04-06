@@ -69,6 +69,7 @@ def startRequiredApps():
         if count == 12:
             with open( "nohup.out") as f:
                 repositories.eprint(f.read())
+            repositories.eprint( repositories.executeSyncCommand(["pgrep", "-f", "nginx: master|runModbusTCP"]))
             raise repositories.SyncException("Port " + str(port) + " is not up")
 
 def unlinkIfExist( file:str):
