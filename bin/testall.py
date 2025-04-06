@@ -29,7 +29,7 @@ defaultMimeTypes = "/etc/nginx/mime.types"
 defaultLibDir = "/var/lib/nginx"
     
 def nginxGetMimesTypes():
-    if  not os.path.isdir(defaultMimeTypes):
+    if  not os.path.exists(defaultMimeTypes):
         return "/opt/homebrew/" + defaultMimeTypes
     return defaultMimeTypes
 
@@ -56,7 +56,7 @@ def startRequiredApps():
         # default directory
     with open("nginx.conf", "w") as g:
         g.write( nginxConf)
-    subprocess.Popen(["nohup", "nginx","-c","./nginx.conf","-p","."])
+    subprocess.Popen(["nohup", "nginx","-c","nginx.conf","-p","."])
     subprocess.Popen(["nohup", "node", "server/dist/runModbusTCPserver.js", "-y", "server/cypress/servers/modbustcp.conf/yaml-dir" , "--busid", "0"])
     for port in [3002,3006]:
         count=0
