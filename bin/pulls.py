@@ -261,7 +261,6 @@ try:
                     raise repositories.SyncException( "Error: " + args.pullrequest + " is not in " + args.pulltext)
                 if pr == maintestPullrequest:
                     # Tests will be executed in the workflow itself
-                    repositories.eprint("testorwait 2")
                     if not args.noexec:
                         testall.testall(repositorysList)
                     else:     
