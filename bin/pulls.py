@@ -264,14 +264,8 @@ try:
                     repositories.eprint("testorwait 2")
                     if not args.noexec:
                         testall.testall(repositorysList)
-                    else:
-                        repositories.eprint("testorwait 3")
-                        
-                        #if not ( os.path.isdir("/var/lib/nginx") or os.path.isdir(macngxinlib))or shutil.which("mosquitto_sub")is None:
-                        if True:
-                            testall.checkRequiredApps()
-                           
-                    print("type=testrunner")                  
+                    else:     
+                        print("type=testrunner")                  
                 else:
                     # wait happens here. If the testrunner action fails, this will exit(2)
                     # otherwise exit(0)

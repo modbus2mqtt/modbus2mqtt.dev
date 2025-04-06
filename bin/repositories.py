@@ -445,7 +445,7 @@ def createpullRepository( repository: Repository, repositorysList:Repositorys, p
 
 
    
-def newBranch(repository:Repository, branch:str):
+def newBranchRepository(repository:Repository, branch:str):
     try:
         executeSyncCommand(['git','show-ref','--quiet','refs/heads/' + branch])
     except:
