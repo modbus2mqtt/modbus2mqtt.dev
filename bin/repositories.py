@@ -733,7 +733,7 @@ repositoryFunctions = {
     'syncpull': syncpullRepository,
     'push' : pushRepository,
     'createpull' : createpullRepository,
-    'newbranch': newBranch,
+    'newbranch': newBranchRepository,
     'readpulltext': readpulltextRepository,
     'dependencies': dependenciesRepository,
     'updatepulltext': updatepulltextRepository,
