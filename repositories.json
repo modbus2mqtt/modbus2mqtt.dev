@@ -3,13 +3,15 @@
   "mainproject":"server",
   "repositories": [
     {
-      "name" : "specification.shared"
+      "name" : "specification.shared",
+      "notest" : true
     },
     {
       "name" : "specification"
     },
     {
-        "name" : "server.shared"
+        "name" : "server.shared",
+        "notest" : true
     },
     {
         "name" : "angular"

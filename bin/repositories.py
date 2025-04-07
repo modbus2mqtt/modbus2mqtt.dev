@@ -14,8 +14,6 @@ from typing import Any, Dict
 import typing
 import time
 from threading import Thread
-import testall
-
 @dataclass
 class PullTexts:
     type: str= ""
@@ -57,6 +55,7 @@ class Repository:
     def __init__(self, name:str):
         self.name = name
         self.branch = None
+        self.notest = False
         self.pulltexts =[]
         self.remoteBranch = None
     def _is_valid_operand(self, other):
@@ -135,7 +134,6 @@ class StreamThread ( Thread ):
             sys.stderr.flush()
             if line == '':
                 break
-
 def executeSyncCommandWithCwd(cmdArgs: list[str], cwdP:str, *args, **kwargs)-> str:
             
     if cwdP == None:
@@ -151,6 +149,11 @@ def executeSyncCommandWithCwd(cmdArgs: list[str], cwdP:str, *args, **kwargs)-> s
     if len(err)>0:    
         eprint(err.decode("utf-8"))
     return out
+def executeCommandWithOutputs(cmdArgs: list[str], stdout, stderr,  *args, **kwargs):
+   proc = subprocess.Popen(cmdArgs, stdout=stdout, stderr=stderr)
+   proc.wait()
+   if proc.returncode != 0:
+        raise SyncException( ' '.join(cmdArgs) + " exited with rc= " + proc.returncode)
 
 def executeSyncCommand(cmdArgs: list[str], *args, **kwargs)-> str:
     return executeSyncCommandWithCwd(cmdArgs, os.getcwd(), *args, **kwargs)
@@ -171,6 +174,8 @@ def ghcompare( repo:str, owner:str, base:str, head:str, *args, **kwargs)->str:
 def json2Repositorys(dct:Any ):
     if 'name' in dct:
         p =   Repository( dct['name'])
+        if 'notest' in dct:
+            p.notest = dct['notest']
         return p
     return dct
 
@@ -319,18 +324,6 @@ def waitForMainTestPullRequest(repositories:Repositorys, mainTestPullRequest:Pul
                         time.sleep(30)
     # check run not found or other issues. It should stop with exit() when checkrun is finished
     SyncException( "Unable validate check run for pull Request " + mainTestPullRequest.name + ":" +  str(mainTestPullRequest.number ))
-
-def testRepository(repository: Repository):
-
-    args = ["npm", 'run', 'test' ]
-    # If there are jest tests, append reporters
-
-    if os.path.exists("__tests__"):
-        args = args +[ "--", "--reporters", "default", "--reporters",  "github-actions"]
-
-    print("::group::Unit tests for " + repository.name)
-    eprint( executeSyncCommand(args).decode("utf-8"))
-    print( '::endgroup::' )
 
 # syncs main from original github source to local git branch (E.g. 'feature')
 def syncRepository(repository: Repository, repositorys:Repositorys):
@@ -723,23 +716,6 @@ def npminstallRepository(repository:Repository, ci:bool):
 
 def buildRepository(repository:Repository):
     eprint(executeSyncCommand(['npm','run', 'build']).decode("utf-8"))
- 
-repositoryFunctions = {
-    'compare' : compareRepository,
-    'sync' : syncRepository,
-    'npminstall':npminstallRepository,
-    'build':buildRepository,
-    'test':testRepository,
-    'syncpull': syncpullRepository,
-    'push' : pushRepository,
-    'createpull' : createpullRepository,
-    'newbranch': newBranchRepository,
-    'readpulltext': readpulltextRepository,
-    'dependencies': dependenciesRepository,
-    'updatepulltext': updatepulltextRepository,
-    'prepareGitForRelease': prepareGitForReleaseRepository,
-}
-
 
 def doWithRepositorys( repositorys:Repositorys, repoFunction:Any, *args:Any ): 
     eprint("step: " + repoFunction.__name__, sep=' ', end='', flush=True )

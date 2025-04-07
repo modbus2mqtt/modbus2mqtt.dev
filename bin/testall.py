@@ -4,6 +4,7 @@ import re
 import socket
 import stat
 import subprocess
+import sys
 import time
 import repositories
 import os
@@ -87,16 +88,26 @@ def killRequiredApps():
     except:
         return 
     print( '::endgroup::' )
+
+def testRepository(repository: repositories.Repository):
+    
+    args = ["npm", 'run', 'test' ]
+    # If there are jest tests, append reporters
+
+    if os.path.exists("__tests__"):
+        args = args +[ "--", "--reporters", "default", "--reporters",  "github-actions"]
+    if not repository.notest:
+        print("::group::Unit tests for " + repository.name)
+        repositories.executeCommandWithOutputs(args,sys.stderr, sys.stderr)
+        print( '::endgroup::' )
         
 def testall(repositorysList)->bool:
-    repositories.doWithRepositorys(repositorysList, repositories.testRepository)
+    repositories.doWithRepositorys(repositorysList, testRepository)
     os.chdir("server")
     if os.path.isdir(os.path.join("cypress", "e2e")):
 
             print("::group::Cypress run tests")
-            repositories.eprint(repositories.executeSyncCommand(["npx", "cypress", "run"]).decode("utf-8"))
-            print( '::endgroup::' )
-            print("::group::Cypress cleanup")
+            repositories.executeCommandWithOutputs(["npx", "cypress", "run"],sys.stderr, sys.stdout)
             print( '::endgroup::' )
     else:
             repositories.eprint("No Cypress tests ín" + os.getcwd())

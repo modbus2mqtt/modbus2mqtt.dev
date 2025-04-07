@@ -106,7 +106,7 @@ required PRs: specification:3"],
             "request": "launch",
             "cwd": "${workspaceFolder}",
             "program": "${workspaceFolder}/bin/pulls.py",
-             "args": [ "test", "startServers"], 
+             "args": [ "test", "test"], 
             "console": "integratedTerminal"
         },
         {
