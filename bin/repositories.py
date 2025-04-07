@@ -31,9 +31,12 @@ class TestStatus(Enum):
     notstarted = 0
 class PullRequest:
         
-    def __init__(self, name:str,number:int):
+    def __init__(self, name:str,number:int, status:str = None):
         self.name = name
         self.number = number
+        self.status = status
+        self.text = None
+        self.mergedAt = None
     def _is_valid_operand(self, other):
         return (hasattr(other, "name") and
                 hasattr(other, "number"))
@@ -49,6 +52,7 @@ class PullRequest:
         return self.name.lower() < other.name.lower()
     name: str
     number: int
+    status: str
 
 @functools.total_ordering
 class Repository:      
@@ -501,27 +505,33 @@ def getPullrequestId(repository:Repository, repositorys:Repositorys):
                     return entry["number"]
 
     return None
-def getpulltextFromGithub( pullrequest:PullRequest, baseowner:str)->str:
+def getpullRequestFromGithub( pullrequest:PullRequest, baseowner:str)->PullRequest:
 
     js = json.loads(executeSyncCommand([ "gh", "pr", "view" , str( pullrequest.number), 
         "-R", baseowner + "/" + pullrequest.name,
-        "--json", "body"  ]))
-    return  js['body']
+        "--json", "body", "--json", "state", "--json", "mergedAt"   ]))
+    pullrequest.status = js['state']
+    pullrequest.text = js['body']
+    pullrequest.mergedAt = js['mergedAt']
+    return  pullrequest
 
 requiredRepositorysRe = r"\/([^\/]*)\/pulls\/(\d+)"
 
 def getPullrequestFromString(prname:str )->PullRequest:
     pr = prname.split(':')
-    if len(pr) != 2:
+    if len(pr) < 2:
         raise SyncException("Invalid format for pull request (expected: <repository>:<pull request number>)")
+    if len(pr) == 3:
+        PullRequest(pr[0],int(pr[1], pr[2]))
     return PullRequest(pr[0],int(pr[1]))
 
-def getRequiredReposFromPRDescription(prDescription:str,pullrequest:PullRequest)->list[PullRequest]:
+def getRequiredReposFromPRDescription(prDescription:str,pullrequest:PullRequest,baseowner:str)->list[PullRequest]:
     rc:list[PullRequest] = []      
     if( prDescription != None):
         matches = re.findall( requiredRepositorysRe, prDescription, re.MULTILINE )
         for m in matches:
-           rc.append(PullRequest(m[0],int(m[1])))
+           pr = getpullRequestFromGithub(PullRequest(m[0],int(m[1])), baseowner)
+           rc.append(pr)
     if len(rc)==0:
         if pullrequest != None:
             rc.append(pullrequest)
@@ -531,8 +541,9 @@ def getRequiredReposFromPRDescription(prDescription:str,pullrequest:PullRequest)
 
 def getRequiredPullrequests( pullrequest:PullRequest= None, pulltext:str = None, owner:str=None )->list[PullRequest]:
     if pulltext == None or pulltext == '':
-        pulltext = getpulltextFromGithub( pullrequest, owner )
-    return getRequiredReposFromPRDescription(pulltext,pullrequest)
+        pullreq = getpullRequestFromGithub( pullrequest, owner )
+        pulltext = pullreq.text
+    return getRequiredReposFromPRDescription(pulltext,pullrequest, owner)
 
   
 def updatepulltextRepository(repository:Repository, repositorysList: Repositorys, pullRepositorys):
@@ -545,11 +556,12 @@ def updatepulltextRepository(repository:Repository, repositorysList: Repositorys
     if requiredText.endswith(", "):
         requiredText = requiredText[:-2]
     if repository.pullrequestid != None:
-        txt = getpulltextFromGithub(PullRequest(repository.name,repository.pullrequestid), repositorysList.owner)
+        pr= getpullRequestFromGithub(PullRequest(repository.name,repository.pullrequestid), repositorysList.owner)
+        
         pulltext = re.sub(
            requiredRepositorysRe, 
            "", 
-           txt)
+           pr.text)
         eprint( pulltext)
         args = [ "gh", "pr", "edit", str( repository.pullrequestid), 
             "-R", repositorysList.owner + "/" + repository.name,
@@ -718,18 +730,13 @@ def buildRepository(repository:Repository):
     eprint(executeSyncCommand(['npm','run', 'build']).decode("utf-8"))
 
 def doWithRepositorys( repositorys:Repositorys, repoFunction:Any, *args:Any ): 
-    eprint("step: " + repoFunction.__name__, sep=' ', end='', flush=True )
     pwd = os.getcwd()
     for repository in repositorys.repositorys:
         global currentRepository 
-        eprint( repository.name)
         currentRepository = repository.name
-        eprint(" " + currentRepository, sep=' ', end='', flush=True )
         os.chdir(repository.name)
-        eprint(os.getcwd())
         try:
             repoFunction( repository, *args)
         finally:
             os.chdir(pwd)
-    eprint("")
 

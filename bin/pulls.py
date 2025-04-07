@@ -144,13 +144,13 @@ def dependencies( repositoryList, type:str, *args):
     finally:
         os.chdir(pwd)
 
-def validatePullRequestArgs(pullrequest:str, pulltext:str)->repositories.PullRequest:
+def validatePullRequestArgs(pullrequest:str, pulltext:str, repositories:repositories.Repositorys)->repositories.PullRequest:
     pr = None
     if pullrequest != None and pullrequest != '':
         pr  = repositories.getPullrequestFromString(pullrequest)
     if pr == None:
         if pulltext != None and pulltext != '':
-            rc = repositories.getRequiredReposFromPRDescription(pulltext, None)
+            rc = repositories.getRequiredReposFromPRDescription(pulltext, None, repositories.owner)
             if len(rc)==0:
                 raise repositories.SyncException( "Usage: Either --pullrequest or -- pulltext is required ")
             else:
@@ -189,11 +189,12 @@ parser_test = subparsers.add_parser("test", help="test: execute npm test for all
 parser_test.set_defaults(command='test')
 parser_test.add_argument("test", help="runs with npm ci instead of npm install", choices=["test", "startServers", "killServers"], default="test")
 
-parser_testorwait = subparsers.add_parser("testorwait", help="Executed via github event pull_request")
-parser_testorwait.set_defaults(command='testorwait')
-parser_testorwait.add_argument( "pullrequest", help="Pull request <repository name>:<number> ", type = str)
-parser_testorwait.add_argument("pulltext", help="Description of pull request ", type = str)
-parser_testorwait.add_argument("-n", "--noexec", help="Just evaluate whether this workflow will wait for tests or will execute it", action='store_true')
+parser_execorwait = subparsers.add_parser("execorwait", help="Executed via github event pull_request")
+parser_execorwait.set_defaults(command='execorwait')
+parser_execorwait.add_argument( "pullrequest", help="Pull request <repository name>:<number> ", type = str)
+parser_execorwait.add_argument("pulltext", help="Description of pull request ", type = str)
+parser_execorwait.add_argument("waitreason", help="Description of pull request ", choices=["pullaction", "merge"], type = str)
+parser_execorwait.add_argument("-n", "--noexec", help="Just evaluate whether this workflow will wait for tests or will execute it", action='store_true')
 
 
 parser_release = subparsers.add_parser("release", help="releases all repositorys")
@@ -233,7 +234,7 @@ try:
         case "build":
             repositories.doWithRepositorys(repositorysList, repositories.buildRepository)
         case "syncpull":
-            pr  = validatePullRequestArgs(args.pullrequest, args.pulltext)
+            pr  = validatePullRequestArgs(args.pullrequest, args.pulltext, repositorysList)
             if args.pulltext == None or args.pulltext == '':
                 prs=[pr]
             else:
@@ -248,29 +249,43 @@ try:
                 case "killServers":
                     testall.killRequiredApps()
 
-        case "testorwait":
-            repositories.eprint("testorwait")
+        case "execorwait":
+            repositories.eprint("execorwait")
             if args.pullrequest == None or args.pullrequest == '':
                 raise repositories.SyncException()
             else:
-                repositories.eprint("testorwait 1")
                 pr  = repositories.getPullrequestFromString(args.pullrequest)
-                requiredPrs = repositories.getRequiredReposFromPRDescription(args.pulltext,pr)
-                maintestPullrequest = requiredPrs[0]
+                requiredPrs = repositories.getRequiredReposFromPRDescription(args.pulltext,pr, repositorysList.owner)
+                maintestPullrequest = None
+                for p in requiredPrs:
+                    if p.mergedAt == None and p.status.lower() != "closed":
+                        maintestPullrequest = p
                 if maintestPullrequest == None:
                     raise repositories.SyncException( "Error: " + args.pullrequest + " is not in " + args.pulltext)
-                if pr == maintestPullrequest:
-                    # Tests will be executed in the workflow itself
-                    if not args.noexec:
-                        testall.testall(repositorysList)
-                    else:     
-                        print("type=testrunner")                  
+                if args.waitreason == "merge":
+                    mergedCount = 0
+                    closedCount = 0            
+                    for pr1 in requiredPrs:
+                        if pr1.mergedAt != None:
+                            mergedCount += 1
+                        if pr1.status.lower() == "closed":
+                            closedCount += 1
+                    if mergedCount == len( requiredPrs):
+                        print("type=runner")
                 else:
-                    # wait happens here. If the testrunner action fails, this will exit(2)
-                    # otherwise exit(0)
-                    # I need a open pull request with check to proceed
-                    #TODO repositories.waitForMainTestPullRequest(repositorysList,maintestPullrequest)
-                    repositories.eprint("Wait is not implemented yet")
+                    if pr != None and pr == maintestPullrequest:
+                        # Tests will be executed in the workflow itself
+                        if not args.noexec:
+                            testall.testall(repositorysList)
+                        else:     
+                            print("type=runner")                  
+                    else:
+                        # wait happens here. If the testrunner action fails, this will exit(2)
+                        # otherwise exit(0)
+                        # I need a open pull request with check to proceed
+                        #TODO repositories.waitForMainTestPullRequest(repositorysList,maintestPullrequest)
+                        repositories.eprint("Wait is not implemented yet")
+
         case "createpull":
             if repositorysList.owner == repositorysList.login:
                 raise repositories.SyncException("Owner must be different from logged in user: " + repositorysList.owner + " == " + repositorysList.login )
