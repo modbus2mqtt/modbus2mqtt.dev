@@ -144,13 +144,13 @@ def dependencies( repositoryList, type:str, *args):
     finally:
         os.chdir(pwd)
 
-def validatePullRequestArgs(pullrequest:str, pulltext:str, repositories:repositories.Repositorys)->repositories.PullRequest:
+def validatePullRequestArgs(pullrequest:str, pulltext:str, repos:repositories.Repositorys)->repositories.PullRequest:
     pr = None
     if pullrequest != None and pullrequest != '':
         pr  = repositories.getPullrequestFromString(pullrequest)
     if pr == None:
         if pulltext != None and pulltext != '':
-            rc = repositories.getRequiredReposFromPRDescription(pulltext, None, repositories.owner)
+            rc = repositories.getRequiredReposFromPRDescription(pulltext, None, repos.owner)
             if len(rc)==0:
                 raise repositories.SyncException( "Usage: Either --pullrequest or -- pulltext is required ")
             else:
