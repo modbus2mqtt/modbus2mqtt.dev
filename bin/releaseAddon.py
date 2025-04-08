@@ -101,5 +101,5 @@ else:
         StringReplacement(pattern=githuburl+ '[^\n]*', newValue=githuburl + '#v' + version  )
         ]        
     updateConfigAndDockerfile(os.path.join(args.basedir, hassioAddonRepository,modbus2mqtt), version, replacements,replacementsDocker)
-    print("TAG_NAME=v" + version)
+    print("TAG_NAME=" + version)
 
