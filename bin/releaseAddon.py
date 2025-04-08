@@ -24,8 +24,8 @@ class StringReplacement(NamedTuple):
     newValue:str
 
 def getLatestClosedPullRequest(basedir, component ):
-    return json.loads(repositories.executeSyncCommandWithCwd(['gh', 'pr', 'list', 
-	    '-s' , 'closed' , '-L', '1', '--json', 'number'], os.path.join(basedir, component)))[0]['number']
+    return json.loads(repositories.executeSyncCommand(['gh', '-R' , 'modbus2mqtt/server', 'pr', 'list', 
+	    '-s' , 'closed' , '-L', '1', '--json', 'number']))[0]['number']
 
 
 def removeTag(basedir, component, tagname ):

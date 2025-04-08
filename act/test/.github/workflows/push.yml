@@ -55,7 +55,7 @@ jobs:
         with:
           repository: modbus2mqtt/hassio-addon-repository
           path: hassio-addon-repository
-          token: ${{ secrets.PAT }}
+          #token: ${{ secrets.PAT }}
       - name: Set up Node.js
         uses: actions/setup-node@v1
         with:
