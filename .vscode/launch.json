@@ -124,6 +124,15 @@ required PRs: specification:3"],
             "console": "integratedTerminal"
         },
         {
+            "name": "pulls execorwait empty parameter",
+            "type": "debugpy",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "program": "${workspaceFolder}/bin/pulls.py",
+             "args": [ "execorwait", "--noexec", "", "", "merge"], 
+            "console": "integratedTerminal"
+        },
+        {
             "name": "pulls createpull",
             "type": "debugpy",
             "request": "launch",

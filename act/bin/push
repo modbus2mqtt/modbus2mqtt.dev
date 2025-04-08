@@ -1,0 +1,1 @@
+act --eventpath ../events/push_event.json push

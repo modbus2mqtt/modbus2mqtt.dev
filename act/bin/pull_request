@@ -1,0 +1,1 @@
+act --eventpath events/pull_request_event.json pull_request

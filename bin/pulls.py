@@ -258,7 +258,7 @@ try:
                 requiredPrs = repositories.getRequiredReposFromPRDescription(args.pulltext,pr, repositorysList.owner)
                 maintestPullrequest = None
                 for p in requiredPrs:
-                    if p.mergedAt == None and p.status.lower() != "closed":
+                    if p.mergedAt == None and p.status != None and p.status.lower() != "closed":
                         maintestPullrequest = p
                 if maintestPullrequest == None:
                     raise repositories.SyncException( "Error: " + args.pullrequest + " is not in " + args.pulltext)
