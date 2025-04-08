@@ -272,6 +272,9 @@ try:
                             closedCount += 1
                     if mergedCount == len( requiredPrs):
                         print("type=runner")
+                    else:
+                        repositories.eprint("Not all pull requests are merged terminating")
+                        exit(2)
                 else:
                     if pr != None and pr == maintestPullrequest:
                         # Tests will be executed in the workflow itself

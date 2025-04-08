@@ -41,7 +41,7 @@ def removeTag(basedir, component, tagname ):
 def getVersionForDevelopment(basedir, component):
     prnumber = getLatestClosedPullRequest(basedir, component)
     version = repositories.readPackageJson(os.path.join(basedir, component,'package.json'))['version']
-    return version + "-pr" + str(prnumber)
+    return version + "-srv" + str(prnumber)
 
 def replaceStringInFile(inFile, outFile, replacements):
     for repl in replacements:
@@ -79,10 +79,11 @@ if not args.release:
 
     version = getVersionForDevelopment(args.basedir, 'server' )
     replacements = [
-        StringReplacement(pattern='version: v[0-9.][^\n]*', newValue='version: v' +version + '\n'),
+        StringReplacement(pattern='version: [0-9.][^\n]*', newValue='version: ' +version ),
+#        StringReplacement(pattern='image: modbus2mqtt/modbus2mqtt.latest-{arch}:[0-9.][^\n]*', newValue= 'image: modbus2mqtt/modbus2mqtt-{arch}: ' + version + '\n')
         ]
     updateConfigAndDockerfile(os.path.join(args.basedir, hassioAddonRepository,modbus2mqttLatest), version, replacements,replacements)
-    print("TAG_NAME=v" + version)
+    print("TAG_NAME=" + version)
 else:
     repositories.executeSyncCommand(['rsync', '-avh', os.path.join(args.basedir,hassioAddonRepository,modbus2mqttLatest) + '/', os.path.join(args.basedir,hassioAddonRepository,modbus2mqtt) +'/', '--delete'])
         
@@ -91,7 +92,7 @@ else:
     githuburl = 'github:modbus2mqtt/server'
     replacements = [
         StringReplacement(pattern='version: v[0-9.][^\n]*', 
-                          newValue='version: v' +  version + 
+                          newValue='version: ' +  version + 
                           '\nimage: modbus2mqtt/modbus2mqtt-{arch}:' + version + 
                           '\ncodenotary: info@carcam360.de' ),
         StringReplacement(pattern='slug:.*', newValue='slug: modbus2mqtt'),
