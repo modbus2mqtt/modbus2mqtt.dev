@@ -260,8 +260,6 @@ try:
                 for p in requiredPrs:
                     if p.mergedAt == None and p.status != None and p.status.lower() != "closed":
                         maintestPullrequest = p
-                if maintestPullrequest == None:
-                    raise repositories.SyncException( "Error: " + args.pullrequest + " is not in " + args.pulltext)
                 if args.waitreason == "merge":
                     mergedCount = 0
                     closedCount = 0            
@@ -276,6 +274,9 @@ try:
                         repositories.eprint("Not all pull requests are merged terminating")
                         exit(2)
                 else:
+                    if maintestPullrequest == None:
+                        raise repositories.SyncException( "Error: " + args.pullrequest + " is not in " + args.pulltext)
+
                     if pr != None and pr == maintestPullrequest:
                         # Tests will be executed in the workflow itself
                         if not args.noexec:

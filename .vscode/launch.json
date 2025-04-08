@@ -115,21 +115,11 @@ required PRs: specification:3"],
             "request": "launch",
             "cwd": "${workspaceFolder}",
             "program": "${workspaceFolder}/bin/pulls.py",
-             "args": [ "execorwait", "--noexec", "specification:3", "specificationInfrastructure fixes\
+             "args": [ "execorwait", "--noexec", "angular:3", "specificationInfrastructure fixes\
 ### Dependant Pullrequests\
 |Repository|Pull Request|\
 |----|----|\
-|[specification](https://github.com/modbus2mqtt/specification/pulls/3)|3|\
 |[angular](https://github.com/modbus2mqtt/angular/pulls/3)|3|", "merge"], 
-            "console": "integratedTerminal"
-        },
-        {
-            "name": "pulls execorwait empty parameter",
-            "type": "debugpy",
-            "request": "launch",
-            "cwd": "${workspaceFolder}",
-            "program": "${workspaceFolder}/bin/pulls.py",
-             "args": [ "execorwait", "--noexec", "", "", "merge"], 
             "console": "integratedTerminal"
         },
         {

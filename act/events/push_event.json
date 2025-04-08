@@ -3,14 +3,14 @@
         "owner": "modbus2mqtt"
       },
       "action": "opened",
-      "number": 3,
+      "number": 4,
       "push": {
 
         "base": {
           "label": "modbus2mqtt:main",
           "ref": "main",
           "repo": {
-            "name": "specification"
+            "name": "angular"
           },
           "owner":{
             "login": "modbus2mqtt"
@@ -18,12 +18,12 @@
         "closed_at": null,
         "head": {
           "ref": "modbuscache",
-          "name": "specification"
+          "name": "angular"
          },
         "number": 5,
         "title": "Test Pullrequest"
       },
-      "body": "Some Text\nrequired PRs: specification:3"
+      "body": "Infrastructure fixes\r\n\r\n### Dependant Pullrequests\r\n|Repository|Pull Request|\r\n|----|----|\r\n||[angular](https://github.com/modbus2mqtt/angular/pulls/4)|4|\r\n"
      
     }
   }
