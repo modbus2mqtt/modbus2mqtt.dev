@@ -5,9 +5,8 @@ name: Create and publish a Docker image
 on:
   push:
     branches: ['main']
-  secrets:
-    PAT:
-      required: true
+  workflow_dispatch:
+
 # Defines two custom environment variables for the workflow. These are used for the Container registry domain, and a name for the Docker image that this workflow builds.
 env:
   REGISTRY: ghcr.io
@@ -53,8 +52,13 @@ jobs:
           path: .
       - uses: actions/checkout@v4
         with:
+          repository: modbus2mqtt/server
+          path: server
+      - uses: actions/checkout@v4
+        with:
           repository: modbus2mqtt/hassio-addon-repository
           path: hassio-addon-repository
+          ref: refs/heads/dev
           #token: ${{ secrets.PAT }}
       - name: Set up Node.js
         uses: actions/setup-node@v1
@@ -72,6 +76,8 @@ jobs:
         id: prepareAddonDirectory
         run: |
           ./bin/releaseAddon.py --ref ${{github.ref}} >>$GITHUB_ENV
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Checkin hassio-addon-repository
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
@@ -79,9 +85,10 @@ jobs:
           tagging_message: ${{env.TAG_NAME}}
           commit_message: ${{env.TAG_NAME}}
       - name: Publish
-        uses: home-assistant/builder@2025.03.0
+        uses: home-assistant/builder@master 
         with:
           args: |
             --all \
             --target ./hassio-addon-repository/modbus2mqtt \
-            --docker-hub-check
+            --image modbus2mqtt.latest-{arch} \
+            --docker-hub modbus2mqtt

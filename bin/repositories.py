@@ -523,7 +523,9 @@ def getPullrequestFromString(prname:str )->PullRequest:
         raise SyncException("Invalid format for pull request (expected: <repository>:<pull request number>)")
     if len(pr) == 3:
         PullRequest(pr[0],int(pr[1], pr[2]))
-    return PullRequest(pr[0],int(pr[1]))
+    if pr[1] != '':
+        return PullRequest(pr[0],int(pr[1]))
+    return None
 
 def getRequiredReposFromPRDescription(prDescription:str,pullrequest:PullRequest,baseowner:str)->list[PullRequest]:
     rc:list[PullRequest] = []      
@@ -536,7 +538,7 @@ def getRequiredReposFromPRDescription(prDescription:str,pullrequest:PullRequest,
         if pullrequest != None:
             rc.append(pullrequest)
         else:
-            raise SyncException("Unable to determine pull requests no pull request available and the pull description contains no dependencies ") 
+            eprint("Unable to determine pull requests no pull request available and the pull description contains no dependencies ") 
     return rc
 
 def getRequiredPullrequests( pullrequest:PullRequest= None, pulltext:str = None, owner:str=None )->list[PullRequest]:
