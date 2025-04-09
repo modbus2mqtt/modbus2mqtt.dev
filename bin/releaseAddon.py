@@ -74,7 +74,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("-b", "--basedir", help="base directory of all repositories", default='.')
 parser.add_argument("-R", "--ref", help="ref branch or tag ", default='refs/heads/main')
 parser.add_argument("-r", "--release", help="builds sets version number in config.yaml", action='store_true')
-parser.add_argument("-p", "--pkgjson", help="directory of package.json file for version number in config.yaml",  default=None)
+parser.add_argument("-p", "--pkgjson", help="directory of package.json file for version number in config.yaml",  type= str,   nargs='?',  default=None)
 
 args = parser.parse_args()
 if not args.release:
