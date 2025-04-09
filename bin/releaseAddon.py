@@ -23,7 +23,7 @@ class StringReplacement(NamedTuple):
     pattern: str
     newValue:str
 
-def getLatestClosedPullRequest(basedir, component ):
+def getLatestClosedPullRequest( ):
     return json.loads(repositories.executeSyncCommand(['gh', '-R' , 'modbus2mqtt/server', 'pr', 'list', 
 	    '-s' , 'closed' , '-L', '1', '--json', 'number']))[0]['number']
 
@@ -38,9 +38,10 @@ def removeTag(basedir, component, tagname ):
         repositories.eprint( err.args)
 
 
-def getVersionForDevelopment(basedir, component):
-    prnumber = getLatestClosedPullRequest(basedir, component)
-    version = repositories.readPackageJson(os.path.join(basedir, component,'package.json'))['version']
+def getVersionForDevelopment(pkgjson:str):
+    js = repositories.readPackageJson(os.path.join(pkgjson,'package.json'))
+    version =js['version']
+    prnumber = getLatestClosedPullRequest()
     return version + "-srv" + str(prnumber)
 
 def replaceStringInFile(inFile, outFile, replacements):
@@ -73,13 +74,15 @@ parser = argparse.ArgumentParser()
 parser.add_argument("-b", "--basedir", help="base directory of all repositories", default='.')
 parser.add_argument("-R", "--ref", help="ref branch or tag ", default='refs/heads/main')
 parser.add_argument("-r", "--release", help="builds sets version number in config.yaml", action='store_true')
-parser.add_argument("-v", "--version", help="the version number for config.yaml",  default=None)
+parser.add_argument("-p", "--pkgjson", help="directory of package.json file for version number in config.yaml",  default=None)
 
 args = parser.parse_args()
 if not args.release:
-    version = args.version
-    if args.version == None:
-        version = getVersionForDevelopment(args.basedir, 'server' )
+    version = None
+    if args.pkgjson == None:
+        version = getVersionForDevelopment(os.path.join(args.basedir, 'server')) 
+    else:
+        version = getVersionForDevelopment(args.pkgjson)
     replacements = [
         StringReplacement(pattern='version: [0-9.][^\n]*', newValue='version: ' +version ),
 #        StringReplacement(pattern='image: modbus2mqtt/modbus2mqtt.latest-{arch}:[0-9.][^\n]*', newValue= 'image: modbus2mqtt/modbus2mqtt-{arch}: ' + version + '\n')
