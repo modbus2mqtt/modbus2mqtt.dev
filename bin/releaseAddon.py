@@ -73,11 +73,13 @@ parser = argparse.ArgumentParser()
 parser.add_argument("-b", "--basedir", help="base directory of all repositories", default='.')
 parser.add_argument("-R", "--ref", help="ref branch or tag ", default='refs/heads/main')
 parser.add_argument("-r", "--release", help="builds sets version number in config.yaml", action='store_true')
+parser.add_argument("-v", "--version", help="the version number for config.yaml",  default=None)
 
 args = parser.parse_args()
 if not args.release:
-
-    version = getVersionForDevelopment(args.basedir, 'server' )
+    version = args.version
+    if args.version == None:
+        version = getVersionForDevelopment(args.basedir, 'server' )
     replacements = [
         StringReplacement(pattern='version: [0-9.][^\n]*', newValue='version: ' +version ),
 #        StringReplacement(pattern='image: modbus2mqtt/modbus2mqtt.latest-{arch}:[0-9.][^\n]*', newValue= 'image: modbus2mqtt/modbus2mqtt-{arch}: ' + version + '\n')
