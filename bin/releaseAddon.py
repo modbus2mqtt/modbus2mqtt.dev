@@ -17,7 +17,7 @@ modbus2mqtt ='modbus2mqtt'
 modbus2mqttLatest ='modbus2mqtt.latest'
 configYaml='config.yaml'
 dockerDir ='docker'
-dockerFile = 'Dockerfile'
+dockerFile = 'docker/Dockerfile'
 
 class StringReplacement(NamedTuple):
     pattern: str
