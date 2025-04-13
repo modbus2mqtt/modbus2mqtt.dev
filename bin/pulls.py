@@ -20,9 +20,9 @@ class Issue:
 def getPullRepositorys(allRepositorys:repositories.Repositorys)->MutableSequence[repositories.Repository]:
     rc:MutableSequence[repositories.Repository] = []
     for repository in allRepositorys.repositorys:
-        if repositories.localChanges > 0:
+        if repository.localChanges > 0:
             raise PullException("Repository " + repositories.name + " has local changes")
-        if repositories.gitChanges > 0:
+        if repository.gitChanges > 0:
             rc.append( repository)
     if len(rc) == 0:
         raise PullException("No changes in Github")
@@ -59,14 +59,14 @@ def buildPulltext(allRepositorys:repositories.Repositorys, pullRepositorys, issu
         onePrText = ""
         type = ""
         for repository in allRepositorys.repositorys:
-            if repositories.pulltexts:
-                for pt in repositories.pulltexts:
+            if repository.pulltexts:
+                for pt in repository.pulltexts:
                     if pt.type == 'bug':
-                        bugs += "* " + repositories.name + ":" + pt.topic + "<br>\n" 
+                        bugs += "* " + repository.name + ":" + pt.topic + "<br>\n" 
                         if pt.text != None and pt.text != "":
                             bugs += "    " + pt.text + "<br>\n"
                     else:
-                        features += "* " + repositories.name + ":" + pt.topic + "<br>\n" 
+                        features += "* " + repository.name + ":" + pt.topic + "<br>\n" 
                         if pt.text != None and pt.text != "":
                             features += "    " + pt.text + "<br>\n"
                     # if there is only one topic, use it, otherwise use default update me text

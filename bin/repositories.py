@@ -368,7 +368,7 @@ def syncRepository(repository: Repository, repositorys:Repositorys):
         executeSyncCommand(['git','pull', '--rebase']).decode("utf-8")
    
     repository.localChanges = getLocalChanges()
-    executeSyncCommand( ['git','merge',  repositorys.owner +'/main'] ).decode("utf-8")
+    executeSyncCommand( ['git','merge', 'main'] ).decode("utf-8")
     out = executeSyncCommand(['git','diff', '--name-only','main' ]).decode("utf-8")
     repository.gitChanges = out.count('\n')
 
@@ -398,7 +398,7 @@ def pushRepository(repository:Repository, repositorys:Repositorys):
         executeSyncCommand(['git', 'remote', 'set-url', repositorys.login, getGitPrefix(repositorys)  + repositorys.login + '/'+ repository.name + '.git' ])
     executeSyncCommand(['git','switch', repository.branch])
     # push local git branch to remote servers feature branch
-    executeSyncCommand(['git','push', repositorys.owner, repository.branch]).decode("utf-8")
+    executeSyncCommand(['git','push', repositorys.login, repository.branch]).decode("utf-8")
 
 def compareRepository( repository:Repository, repositorys:Repositorys):
     # compares git current content with remote branch 
@@ -433,12 +433,16 @@ def createpullRepository( repository: Repository, repositorysList:Repositorys, p
         # Append "requires:" text
         repository.pullrequestid = js['number']
     except SyncException as err:
-        if len(args) and err.args[0] != "":
-            js = json.loads(err.args[1])
+        if len(err.args) and err.args[0] != "":
+            js = json.loads(err.args[2])
             if js['errors'][0]['message'].startswith("A pull request already exists for"):
                 eprint( js['errors'][0]['message']  + ". Continue...")
                 repository.pullrequestid = getPullrequestId(repository,repositorysList)
                 return
+            else:
+                raise err
+        else:
+            raise err
 
 
    
@@ -561,9 +565,9 @@ def updatepulltextRepository(repository:Repository, repositorysList: Repositorys
         pr= getpullRequestFromGithub(PullRequest(repository.name,repository.pullrequestid), repositorysList.owner)
         
         pulltext = re.sub(
-           requiredRepositorysRe, 
+           '### Dependant Pullrequests\n.*', 
            "", 
-           pr.text)
+           pr.text, flags=re.MULTILINE)
         eprint( pulltext)
         args = [ "gh", "pr", "edit", str( repository.pullrequestid), 
             "-R", repositorysList.owner + "/" + repository.name,
