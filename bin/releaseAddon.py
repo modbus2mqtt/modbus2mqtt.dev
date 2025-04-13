@@ -85,7 +85,6 @@ if not args.release:
         version = getVersionForDevelopment(args.pkgjson)
     replacements = [
         StringReplacement(pattern='version: [0-9.][^\n]*', newValue='version: ' +version ),
-#        StringReplacement(pattern='image: modbus2mqtt/modbus2mqtt.latest-{arch}:[0-9.][^\n]*', newValue= 'image: modbus2mqtt/modbus2mqtt-{arch}: ' + version + '\n')
         ]
     updateConfigAndDockerfile(os.path.join(args.basedir, hassioAddonRepository,modbus2mqttLatest), version, replacements,replacements)
     print("TAG_NAME=" + version)
@@ -97,14 +96,13 @@ else:
     githuburl = 'github:modbus2mqtt/server'
     replacements = [
         StringReplacement(pattern='version: v[0-9.][^\n]*', 
-                          newValue='version: ' +  version + 
-                          '\nimage: modbus2mqtt/modbus2mqtt-{arch}:' + version + 
-                          '\ncodenotary: info@carcam360.de' ),
+                          newValue='version: ' +  version ),
+        StringReplacement(pattern='image: ghcr.io/modbus2mqtt/modbus2mqtt.latest', newValue= 'image: modbus2mqtt/modbus2mqtt'),
         StringReplacement(pattern='slug:.*', newValue='slug: modbus2mqtt'),
         ]
     replacementsDocker = [
         StringReplacement(pattern=githuburl+ '[^\n]*', newValue=githuburl + '#v' + version  )
         ]        
-    updateConfigAndDockerfile(os.path.join(args.basedir, hassioAddonRepository,modbus2mqtt), version, replacements,replacementsDocker)
+    #updateConfigAndDockerfile(os.path.join(args.basedir, hassioAddonRepository,modbus2mqtt), version, replacements,replacementsDocker)
     print("TAG_NAME=" + version)
 
