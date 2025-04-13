@@ -32,7 +32,9 @@ def removeTag(basedir, component, tagname ):
     try:
         repositories.executeSyncCommandWithCwd(['git', 'push', '--delete', 
 	    'origin' , tagname], os.path.join(basedir, component))
-        repositories.eprint("tagname: !" + tagname + "!")
+    except repositories.SyncException as err:
+        repositories.eprint( err.args)
+    try:
         repositories.executeSyncCommandWithCwd(['git', 'tag', '-d', tagname], os.path.join(basedir, component))
     except repositories.SyncException as err:
         repositories.eprint( err.args)
@@ -95,14 +97,16 @@ else:
     removeTag(args.basedir,hassioAddonRepository, 'v' +version)
     githuburl = 'github:modbus2mqtt/server'
     replacements = [
-        StringReplacement(pattern='version: v[0-9.][^\n]*', 
+        StringReplacement(pattern='version: [0-9.][^\n]*', 
                           newValue='version: ' +  version ),
-        StringReplacement(pattern='image: ghcr.io/modbus2mqtt/modbus2mqtt.latest', newValue= 'image: modbus2mqtt/modbus2mqtt'),
+        StringReplacement(pattern='Modbus <=> MQTT latest', 
+                          newValue='Modbus <=> MQTT' ),
+        StringReplacement(pattern='image: ghcr.io/modbus2mqtt/modbus2mqtt.latest', newValue= 'image: ghcr.io/modbus2mqtt/modbus2mqtt'),
         StringReplacement(pattern='slug:.*', newValue='slug: modbus2mqtt'),
         ]
     replacementsDocker = [
         StringReplacement(pattern=githuburl+ '[^\n]*', newValue=githuburl + '#v' + version  )
         ]        
-    #updateConfigAndDockerfile(os.path.join(args.basedir, hassioAddonRepository,modbus2mqtt), version, replacements,replacementsDocker)
+    updateConfigAndDockerfile(os.path.join(args.basedir, hassioAddonRepository,modbus2mqtt), version, replacements,replacementsDocker)
     print("TAG_NAME=" + version)
 
