@@ -581,9 +581,13 @@ def readPackageJson( dir:str)->Dict[str,any]:
         with open(dir) as json_data:
             return  json.load( json_data)
     except Exception as err:
-        os.path.exists( dir)
-        eprint("Exception read " )
-        raise SyncException("Try to open package.json in " + os.getcwd() + '\n' +  dir)
+        msg = "Try to open package.json in " + os.getcwd() + '\n' +  dir
+        while not os.path.exists( dir):
+            dir = os.path.dirname(dir)
+        if  dir != '':
+            eprint("Exception directory found: " + dir )
+
+        raise SyncException(msg)
 def updatePackageJsonReferences(repository:Repository,  repositorysList: Repositorys,dependencytype: str, pullRequests:list[PullRequest]):
     if dependencytype != 'pull':
         pullRequests = []
