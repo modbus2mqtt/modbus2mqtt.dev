@@ -94,12 +94,15 @@ class Repositorys:
     repositorys: Any
     pulltext: PullTexts = None
 
-def getGitPrefix( repositorys:Repositorys):
-    eprint( repositorys.login )
-    if repositorys.owner == repositorys.login:
+def getGitPrefix( https:bool):
+    if https:
         return "https://github.com/"
     else:
         return "git@github.com:"
+
+def getGitPrefixFromRepos( repositorys:Repositorys):
+    eprint( repositorys.login )
+    return getGitPrefix(repositorys.owner == repositorys.login)
     
 class SyncException(Exception):
     pass
@@ -238,7 +241,7 @@ def checkRemote( remote:str):
         return len(re.findall(r'((\n|^)' + remote + ')', out, re.MULTILINE)) >0
 
 def addRemote(repositories:Repositorys, repository:Repository, origin:str):
-     cmd = ['git', 'remote', 'add', origin, getGitPrefix(repositories)  + origin + '/' + repository.name + '.git' ]
+     cmd = ['git', 'remote', 'add', origin, getGitPrefixFromRepos(repositories)  + origin + '/' + repository.name + '.git' ]
      executeSyncCommand(cmd)
 def setUrl(repository:Repository, repositorys:Repositorys):
     eprint("setUrl")
@@ -626,7 +629,7 @@ def updatePackageJsonReferences(repository:Repository,  repositorysList: Reposit
                     npminstallargs.append(  releaseName)
                     npmuninstallargs.append( package )                    
                 case "pull":
-                    githubName = getGitPrefix(repositorysList) + repositorysList.owner +'/' + pr.name
+                    githubName = getGitPrefixFromRepos(repositorysList) + repositorysList.owner +'/' + pr.name
                     newgithubName = githubName + '#pull/' + str(pr.number) + '/head'
                     if checkFileExistanceInGithubBranch(repositorysList.owner, pr.name,'main', 'packdage.json'
                         ) or checkFileExistanceInGithubPullRequest(repositorysList.owner, pr.name,str(pr.number), 'package.json'):
@@ -658,8 +661,11 @@ def ensureNewPkgJsonVersion():
         executeSyncCommand(["npm", "--no-git-tag-version", "version", "patch"])
         return "v" + readPackageJson('package.json')['version']        
     return versionTag
+def authRepository(repository:Repository,  repositorysList: Repositorys, https:bool):
+    executeSyncCommand(["git","remote" , "set-url",  repositorysList.login, getGitPrefix(https) + repositorysList.login + "/" +repository.name + ".git"])
+    executeSyncCommand(["git","remote" , "set-url",  repositorysList.owner, getGitPrefix(https) + repositorysList.owner + "/" +repository.name + ".git"])
 
-def dependenciesRepository(repository:Repository,  repositorysList: Repositorys,dependencytype: str, pullRequests:list[PullRequest]):
+def dependenciesRepository(repository:Repository,  repositorysList: Repositorys,dependencytype: str, pullRequests:list[PullRequest]=None):
 
     if dependencytype == 'release':
         # find unreleased commits
@@ -667,7 +673,7 @@ def dependenciesRepository(repository:Repository,  repositorysList: Repositorys,
         executeSyncCommand( ['git','switch', 'main'] )
         executeSyncCommand( ['git','pull','--rebase'] )
         try:
-            sha = executeSyncCommand( ['git','merge-base','--fork-point', 'release' ] ).decode("utf-8")
+            sha = executeSyncCommand( ['git','merge-base', 'main' , 'release' ] ).decode("utf-8")
             sha = sha.replace('\n','')
             out:str = executeSyncCommand(['git','diff', '--name-status', sha ]).decode("utf-8")
             changedInMain = out.count('\n')

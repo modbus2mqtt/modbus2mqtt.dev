@@ -80,7 +80,16 @@ required PRs: specification:3"],
             "program": "${workspaceFolder}/bin/pulls.py",
              "args": ["-p", "repositories.test.json", "release" ], 
             "console": "integratedTerminal"
-        },         
+        },       
+        {
+            "name": "pulls auth",            
+            "type": "debugpy",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "program": "${workspaceFolder}/bin/pulls.py",
+             "args": ["-p", "repositories.test.json", "auth" , "--https"], 
+            "console": "integratedTerminal"
+        },     
         {
             "name": "pulls dependency with pullrequest",
             "type": "debugpy",

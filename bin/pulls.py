@@ -123,7 +123,7 @@ def initRepositorys(branch):
             owner = repositorysList.owner    
         try:
             if not os.path.exists( repository.name ):
-                repositories.executeCommand(['git','clone', repositories.getGitPrefix(repositorysList)  + 
+                repositories.executeCommand(['git','clone', repositories.getGitPrefixFromRepos(repositorysList)  + 
                 owner + '/' + repository.name + '.git' , '--origin', owner ])
             else:
                 os.chdir(repository.name)
@@ -167,6 +167,10 @@ parser.add_argument("-o", "--owner", help="owner of the repository",  nargs='?',
 parser_init = subparsers.add_parser("init", help="init: forks and clones repositories")
 parser_init.add_argument("-b", "--branch", help="New branch name",  nargs='?', default='main')
 parser_init.set_defaults(command='init')
+
+parser_authenticate = subparsers.add_parser("auth", help="Change git credential from ssh to https and vice versa")
+parser_authenticate.add_argument("-t", "--https", help="Change git credential to https",  action='store_true')
+parser_authenticate.set_defaults(command='auth')
 
 parser_switch = subparsers.add_parser("branch", help="branch: Switches to the given branch")
 parser_switch.add_argument("branch", help="branch name")
@@ -225,6 +229,10 @@ try:
     match args.command:
         case "init":
             initRepositorys(args.branch)
+        case "auth":
+            if repositorysList.owner != repositorysList.login:
+                raise repositories.SyncException("Owner same as logged in user: " + repositorysList.owner + " == " + repositorysList.login )
+            repositories.doWithRepositorys(repositorysList, repositories.authRepository, repositorysList, args.https )
         case "branch":
             repositories.doWithRepositorys(repositorysList, repositories.newbranchRepository, args.branch)
         case "sync":
