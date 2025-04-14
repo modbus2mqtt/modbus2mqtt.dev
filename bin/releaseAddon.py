@@ -79,7 +79,7 @@ parser.add_argument("-r", "--release", help="builds sets version number in confi
 parser.add_argument("-p", "--pkgjson", help="directory of package.json file for version number in config.yaml",  type= str,   nargs='?',  default=None)
 
 args = parser.parse_args()
-if not args.release:
+if not args.release and not args.ref.endswith("release"):
     version = None
     if args.pkgjson == None:
         version = getVersionForDevelopment(os.path.join(args.basedir, 'server')) 

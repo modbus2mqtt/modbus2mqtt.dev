@@ -683,7 +683,15 @@ def dependenciesRepository(repository:Repository,  repositorysList: Repositorys,
 
         except SyncException as err:
             if err.args[0] != '': # Wrong return code from git merge-base but no changes
-                raise err
+                js = json.loads(err.args[2])
+                if  js['status'] == str(404):
+                    changedInMain = 1 # Increment version number, because release branch was created
+                    executeSyncCommand(["git", "switch", "release"])
+                    executeSyncCommand(["git", "push", "modbus2mqtt", "-u"])
+                    executeSyncCommand([ 'git','branch','--set-upstream-to='+ repositorysList.owner + '/' + repository.branch] )
+  
+                else:
+                    raise err
                 
         versionTag = ""
         needsNewRelease = False
@@ -696,8 +704,7 @@ def dependenciesRepository(repository:Repository,  repositorysList: Repositorys,
                 executeSyncCommand( ["git", "pull", "-X", "theirs"] )
                 executeSyncCommand( ["git", "push" , "-f", repositorysList.owner, "HEAD"])
                 needsNewRelease = True
-
-        executeSyncCommand( ['git','switch', 'release'] )
+        executeSyncCommand( ['git','switch', 'release'] )                            
         executeSyncCommand( ["git", "pull", "-X", "theirs"] )
         executeSyncCommand( ['git','merge', '-X','theirs', 'main'] )
         updatePackageJsonReferences(repository, repositorysList, dependencytype, pullRequests)    
@@ -720,6 +727,11 @@ def dependenciesRepository(repository:Repository,  repositorysList: Repositorys,
         else:
             if needsNewRelease:
                 raise SyncException( "Release failed: Tag '" + versionTag + "' exists in " + repository.name )
+        # merge back to main to prevent ahead of .. commits
+        executeSyncCommand( ['git','switch', 'main'] )
+        executeSyncCommand( ['git','merge', '-X','ours', 'release'] )
+        executeSyncCommand(["git", "push"])
+        
     else:
         updatePackageJsonReferences(repository, repositorysList, dependencytype, pullRequests)
         
@@ -730,6 +742,13 @@ def prepareGitForReleaseRepository(repository:Repository,  repositorysList: Repo
     match = re.search(r'' + repositorysList.owner + '/', js)
     if not match:
        raise SyncException("Git origin is not " + repositorysList.owner + '/' + repository.name )
+    try:
+        executeSyncCommand(['git', 'fetch',repositorysList.owner,'release'] )
+    except SyncException as err:
+        try:
+            executeSyncCommand(['git', 'branch', 'release']).decode("utf-8")
+        except SyncException as err:
+            eprint("release branch existed")
     executeSyncCommand(['git', 'switch', 'release']).decode("utf-8")
     repository.branch = "release"
 def npminstallRepository(repository:Repository, ci:bool):

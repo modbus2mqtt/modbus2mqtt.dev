@@ -60,7 +60,7 @@ required PRs: specification:3"],
             "request": "launch",
             "cwd": "${workspaceFolder}",
             "program": "${workspaceFolder}/bin/pulls.py",
-             "args": ["-p", "repositories.test.json", "sync" ], 
+             "args": [ "sync" ], 
             "console": "integratedTerminal"
         },
         {
@@ -78,7 +78,7 @@ required PRs: specification:3"],
             "request": "launch",
             "cwd": "${workspaceFolder}",
             "program": "${workspaceFolder}/bin/pulls.py",
-             "args": ["-p", "repositories.test.json", "release" ], 
+             "args": [ "release" ], 
             "console": "integratedTerminal"
         },       
         {
