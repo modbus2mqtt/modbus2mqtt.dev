@@ -3,6 +3,7 @@ import argparse
 import os
 import re
 import json
+import shutil
 import sys
 import tarfile
 import subprocess
@@ -91,8 +92,8 @@ if not args.release and not args.ref.endswith("release"):
     updateConfigAndDockerfile(os.path.join(args.basedir, hassioAddonRepository,modbus2mqttLatest), version, replacements,replacements)
     print("TAG_NAME=" + version)
 else:
-    repositories.executeSyncCommand(['rsync', '-avh', os.path.join(args.basedir,hassioAddonRepository,modbus2mqttLatest) + '/', os.path.join(args.basedir,hassioAddonRepository,modbus2mqtt) +'/', '--delete'])
-        
+    repositories.executeSyncCommand(['rsync', '-avh', os.path.join(args.basedir,hassioAddonRepository,modbus2mqttLatest) + '/', os.path.join(args.basedir,hassioAddonRepository,modbus2mqtt) +'/'])
+
     if args.pkgjson == None:
         version = repositories.readPackageJson(os.path.join( args.basedir, 'server', 'package.json'))['version']
     else:
