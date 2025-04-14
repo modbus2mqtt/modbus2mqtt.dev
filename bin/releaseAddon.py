@@ -97,7 +97,7 @@ else:
     if args.pkgjson == None:
         version = repositories.readPackageJson(os.path.join( args.basedir, 'server', 'package.json'))['version']
     else:
-        version = repositories.readPackageJson(os.path.join(args.pkgjson, 'package.json'))
+        version = repositories.readPackageJson(os.path.join(args.pkgjson, 'package.json'))['version']
     removeTag(args.basedir,hassioAddonRepository, 'v' +version)
     githuburl = 'github:modbus2mqtt/server'
     replacements = [
