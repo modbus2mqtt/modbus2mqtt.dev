@@ -93,7 +93,10 @@ if not args.release and not args.ref.endswith("release"):
 else:
     repositories.executeSyncCommand(['rsync', '-avh', os.path.join(args.basedir,hassioAddonRepository,modbus2mqttLatest) + '/', os.path.join(args.basedir,hassioAddonRepository,modbus2mqtt) +'/', '--delete'])
         
-    version = repositories.readPackageJson(os.path.join( args.basedir, 'server', 'package.json'))['version']
+    if args.pkgjson == None:
+        version = repositories.readPackageJson(os.path.join( args.basedir, 'server', 'package.json'))['version']
+    else:
+        version = repositories.readPackageJson(args.pkgjson)
     removeTag(args.basedir,hassioAddonRepository, 'v' +version)
     githuburl = 'github:modbus2mqtt/server'
     replacements = [
