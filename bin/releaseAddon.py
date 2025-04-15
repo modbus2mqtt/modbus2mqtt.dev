@@ -53,7 +53,7 @@ def replaceStringInFile(inFile, outFile, replacements):
     with open(inFile, 'r') as file:
         data = file.read()
         for repl in replacements:
-            data = re.sub(rf"{repl.pattern}", repl.newValue,data)
+            data = re.sub(rf"{repl.pattern}", repl.newValue,data,re.MULTILINE)
         with open(outFile, 'w') as w:        
             w.write( data)
 
@@ -107,6 +107,8 @@ else:
                           newValue='Modbus <=> MQTT' ),
         StringReplacement(pattern='image: ghcr.io/modbus2mqtt/modbus2mqtt.latest', newValue= 'image: ghcr.io/modbus2mqtt/modbus2mqtt'),
         StringReplacement(pattern='slug:.*', newValue='slug: modbus2mqtt'),
+        StringReplacement(pattern='\s*ports:\n\s*3000\/tcp: 3000\n', newValue=''),
+
         ]
     replacementsDocker = [
         StringReplacement(pattern=githuburl+ '[^\n]*', newValue=githuburl + '#v' + version  )
