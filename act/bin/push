@@ -1,1 +1,2 @@
-act --eventpath ../events/push_event.json push
+
+act --eventpath ../events/push_event.json -s GITHUB_TOKEN="$(gh auth token)" push 
