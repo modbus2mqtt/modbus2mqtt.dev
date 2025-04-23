@@ -361,11 +361,14 @@ def syncRepository(repository: Repository, repositorys:Repositorys):
                     executeSyncCommand(['git','fetch', 'modbus2mqtt']).decode("utf-8")
                     executeSyncCommand(['git','branch','--set-upstream-to='+ repositorys.owner +'/main' ])
                 else:
-                    js = json.loads(err.args[2])
-                    if not js['message'].startswith("Branch not found"):
-                        raise err
-                    else:
-                        executeSyncCommand(['git','branch','--set-upstream-to='+ repositorys.login +'/main', repository.branch ])
+                    if err.args[2] != '':
+                        js = json.loads(err.args[2])
+                        if not js['message'].startswith("Branch not found"):
+                            raise err
+                        else:
+                            executeSyncCommand(['git','branch','--set-upstream-to='+ repositorys.login +'/main', repository.branch ])
+            else:
+                raise err
     else:
         executeSyncCommand(['git','switch', repository.branch]).decode("utf-8")
         executeSyncCommand(['git','pull', '--rebase']).decode("utf-8")
@@ -646,7 +649,7 @@ def updatePackageJsonReferences(repository:Repository,  repositorysList: Reposit
 #    if len(npmuninstallargs ) > 0:
 #        executeSyncCommand(["npm", "uninstall"] + npmuninstallargs)
     try:        
-        executeSyncCommand(["npm", "install"]  + npminstallargs)
+        executeCommandWithOutputs(["npm", "install"]  + npminstallargs, sys.stderr,sys.stderr)
         return len(npminstallargs ) > 0
     except Exception as err:
         eprint("npm cache exceptions can happen if the github url in dependencies is wrong!")

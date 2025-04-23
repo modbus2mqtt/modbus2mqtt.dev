@@ -16,13 +16,18 @@
 
 
         {
-            "name": "pull test",
+            "name": "pulls execorwait",
             "type": "debugpy",
             "request": "launch",
             "cwd": "${workspaceFolder}",
             "program": "${workspaceFolder}/bin/pulls.py",
-             "args": [   "-o", "modbus2mqtt", "testorwait", "specification:3", "Some Text\
-required PRs: specification:3"], 
+             "args": [ "execorwait", "--noexec", "specification:4", "Please update me\
+### Dependant Pullrequests\
+|Repository|Pull Request|\
+|----|----|\
+|[specification](https://github.com/modbus2mqtt/specification/pulls/4)|4|\
+|[server](https://github.com/modbus2mqtt/server/pulls/108)|108|\
+", "pullaction"],
             "console": "integratedTerminal"
         },  
         {
@@ -49,7 +54,7 @@ required PRs: specification:3"],
             "request": "launch",
             "cwd": "${workspaceFolder}",
             "program": "${workspaceFolder}/bin/pulls.py",
-             "args": ["-p", "repositories.test.json", "createpull" ], 
+             "args": [ "createpull" ], 
             "console": "integratedTerminal"
         },
 
@@ -69,7 +74,7 @@ required PRs: specification:3"],
             "request": "launch",
             "cwd": "${workspaceFolder}",
             "program": "${workspaceFolder}/bin/pulls.py",
-             "args": ["-p", "repositories.test.json", "dependencies", "remote" ], 
+             "args": [ "dependencies", "remote" ], 
             "console": "integratedTerminal"
         }, 
         {
@@ -116,19 +121,6 @@ required PRs: specification:3"],
             "cwd": "${workspaceFolder}",
             "program": "${workspaceFolder}/bin/pulls.py",
              "args": [ "test", "test"], 
-            "console": "integratedTerminal"
-        },
-        {
-            "name": "pulls testorwait",
-            "type": "debugpy",
-            "request": "launch",
-            "cwd": "${workspaceFolder}",
-            "program": "${workspaceFolder}/bin/pulls.py",
-             "args": [ "execorwait", "--noexec", "angular:3", "specificationInfrastructure fixes\
-### Dependant Pullrequests\
-|Repository|Pull Request|\
-|----|----|\
-|[angular](https://github.com/modbus2mqtt/angular/pulls/3)|3|", "merge"], 
             "console": "integratedTerminal"
         },
         {

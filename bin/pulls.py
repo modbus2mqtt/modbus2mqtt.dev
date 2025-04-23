@@ -21,7 +21,7 @@ def getPullRepositorys(allRepositorys:repositories.Repositorys)->MutableSequence
     rc:MutableSequence[repositories.Repository] = []
     for repository in allRepositorys.repositorys:
         if repository.localChanges > 0:
-            raise PullException("Repository " + repositories.name + " has local changes")
+            raise PullException("Repository " + repository.name + " has local changes")
         if repository.gitChanges > 0:
             rc.append( repository)
     if len(rc) == 0:
@@ -102,7 +102,7 @@ def createPullRequests( repositorysList:repositories.Repositorys, issue:Issue):
         repositories.doWithRepositorys(repositorysList, repositories.dependenciesRepository, repositorysList,"remote",None)
         pulltext = buildPulltext(repositorysList, pullRepositorys, issue)
         repositories.doWithRepositorys(repositorysList, repositories.createpullRepository, repositorysList, pullRepositorys, pulltext, issue )
-        repositories.doWithRepositorys(repositorysList, repositories.updatepulltextRepository, repositorysList, pullRepositorys , pulltext)
+        repositories.doWithRepositorys(repositorysList, repositories.updatepulltextRepository, repositorysList, pullRepositorys )
     except Exception as err:
         repositories.eprint("Creating aborted =====")
         for arg in err.args:
@@ -127,6 +127,7 @@ def initRepositorys(branch):
                 owner + '/' + repository.name + '.git' , '--origin', owner ])
             else:
                 os.chdir(repository.name)
+
             repositories.setUrl(repository,repositorysList)
    
         finally:
@@ -204,7 +205,7 @@ parser_execorwait.add_argument("-n", "--noexec", help="Just evaluate whether thi
 parser_release = subparsers.add_parser("release", help="releases all repositorys")
 parser_release.set_defaults(command='release')
 parser_create = subparsers.add_parser("createpull", help="createpull: creates pull requests ")
-parser_create.add_argument("-i", "--issue", help="Issue number ",type = int,  nargs='?', default=None)
+parser_create.add_argument("-i", "--issue", help="Issue number ",type = str,  nargs='?', default=None)
 parser_create.set_defaults(command='createpull')
 
 parser_dependencies = subparsers.add_parser("dependencies", help="dependencies changes dependencies in package.json files ]")
@@ -266,7 +267,7 @@ try:
                 requiredPrs = repositories.getRequiredReposFromPRDescription(args.pulltext,pr, repositorysList.owner)
                 maintestPullrequest = None
                 for p in requiredPrs:
-                    if p.mergedAt == None and p.status != None and p.status.lower() != "closed":
+                    if maintestPullrequest == None  and p.mergedAt == None and p.status != None and p.status.lower() != "closed":
                         maintestPullrequest = p
                 if args.waitreason == "merge":
                     mergedCount = 0
@@ -304,7 +305,7 @@ try:
             ii = None
             if args.issue != None:
                 i = args.issue.split(':')
-                ii= Issue(i(0), int(i(1)))
+                ii= Issue( int(i[1]),i[0])
             createPullRequests( repositorysList, ii)
         case "dependencies":
             if args.dependencytype == 'pull':
