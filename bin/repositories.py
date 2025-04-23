@@ -381,8 +381,8 @@ def syncRepository(repository: Repository, repositorys:Repositorys):
 # syncs main from original github source to local git branch (E.g. 'feature')
 def syncpullRepository(repository: Repository, repositorys:Repositorys, prs:list[PullRequest], branch:str):
     executeSyncCommand(['git','switch', 'main'])
+    found = False
     for pr in prs:
-        found = False
         if not found and repository.name == pr.name:
             found = True
             checkRemote(repositorys.owner)
