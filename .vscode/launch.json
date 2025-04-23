@@ -69,12 +69,12 @@
             "console": "integratedTerminal"
         },
         {
-            "name": "pulls dependencies remote",            
+            "name": "pulls dependencies local",            
             "type": "debugpy",
             "request": "launch",
             "cwd": "${workspaceFolder}",
             "program": "${workspaceFolder}/bin/pulls.py",
-             "args": [ "dependencies", "remote" ], 
+             "args": [ "dependencies", "local" ], 
             "console": "integratedTerminal"
         }, 
         {
@@ -109,9 +109,15 @@
             "name": "pulls pullsync",
             "type": "debugpy",
             "request": "launch",
-            "cwd": "${workspaceFolder}/../x",
+            "cwd": "${workspaceFolder}",
             "program": "${workspaceFolder}/bin/pulls.py",
-             "args": ["-p", "../modbus2mqtt.dev/repositories.test.json", "syncpull", "test1:5" , "pull5"], 
+             "args": [ "syncpull", "-r", "specification:4", "-t", "Please update me\
+### Dependant Pullrequests\
+|Repository|Pull Request|\
+|----|----|\
+|[specification](https://github.com/modbus2mqtt/specification/pulls/4)|4|\
+|[server](https://github.com/modbus2mqtt/server/pulls/108)|108|\
+", "pullaction"], 
             "console": "integratedTerminal"
         },
         {

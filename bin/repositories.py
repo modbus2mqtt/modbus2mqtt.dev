@@ -605,7 +605,7 @@ def updatePackageJsonReferences(repository:Repository,  repositorysList: Reposit
             
         package = '@' + repositorysList.owner+ '/' +  pr.name
         
-        if 'dependencies' in pkgjson and package in pkgjson['dependencies'].keys():
+        if 'dependencies' in pkgjson and (package in pkgjson['dependencies'].keys() or package in pkgjson['devDependencies'].keys()):
             pRepository = Repository(pr.name)
             pRepository.branch = repository.branch
             pRepository.pullrequestid = pr.number
