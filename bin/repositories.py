@@ -344,12 +344,19 @@ def syncRepository(repository: Repository, repositorys:Repositorys):
     # Sync owners github repository main branch from modbus2mqtt main branch
     # Only the main branch needs to be synced from github
     executeSyncCommand(['git','switch', 'main' ]).decode("utf-8")
+    executeSyncCommand(['git','fetch' ]).decode("utf-8")
+    executeSyncCommand(['git','merge', repositorys.owner + '/main' ,'-X','theirs']).decode("utf-8")
     # ghapi('GET', ownerrepo+ '/merge-upstream', '-f', 'branch=main'
     # Is is not neccessary to update the main branch in forked repository, because the main branch's origin points to owner
     if repository.isForked:
-        executeSyncCommand( ['gh','repo','sync', repositorys.login + '/' + repository.name ,  '-b' , 'main' ]  ).decode("utf-8")
+        executeSyncCommand(['git','switch', repository.branch ]).decode("utf-8")
+        executeSyncCommand(['git','merge', repositorys.owner + '/main' ,'-X','theirs']).decode("utf-8")
+        executeSyncCommand(['git','pull']).decode("utf-8")
+        executeSyncCommand(['git','push', repositorys.login, 'HEAD']).decode("utf-8")
+        executeSyncCommand( ['gh','repo','sync', repositorys.login + '/' + repository.name ,  '-b' , repository.branch ]  ).decode("utf-8")
         # download all branches from owners github to local git main branch
         try:
+            executeSyncCommand(['git','switch', repository.branch]).decode("utf-8")
             ghapi('GET', '/repos/' + repositorys.login + '/' + repository.name + '/branches/' + repository.branch)
             executeSyncCommand(['git','switch', repository.branch]).decode("utf-8")
             executeSyncCommand(['git','branch','--set-upstream-to='+ repositorys.login +'/' + repository.branch, repository.branch ])
