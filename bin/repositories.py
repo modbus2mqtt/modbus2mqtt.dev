@@ -353,6 +353,7 @@ def syncRepository(repository: Repository, repositorys:Repositorys):
         executeSyncCommand(['git','merge', repositorys.owner + '/main' ,'-X','theirs']).decode("utf-8")
         executeSyncCommand(['git','pull']).decode("utf-8")
         executeSyncCommand(['git','push', repositorys.login, 'HEAD']).decode("utf-8")
+
         executeSyncCommand( ['gh','repo','sync', repositorys.login + '/' + repository.name ,  '-b' , repository.branch ]  ).decode("utf-8")
         # download all branches from owners github to local git main branch
         try:
@@ -678,6 +679,11 @@ def ensureNewPkgJsonVersion():
 def authRepository(repository:Repository,  repositorysList: Repositorys, https:bool):
     executeSyncCommand(["git","remote" , "set-url",  repositorysList.login, getGitPrefix(https) + repositorysList.login + "/" +repository.name + ".git"])
     executeSyncCommand(["git","remote" , "set-url",  repositorysList.owner, getGitPrefix(https) + repositorysList.owner + "/" +repository.name + ".git"])
+
+def revertServerFilesRepository(repository:Repository):
+    for file in ['CHANGES.md', 'package.json', 'package-lock.json']:
+        executeSyncCommand( ['git','restore','--staged' ], file )    
+        executeSyncCommand( ['git','checkout', ], file )
 
 def dependenciesRepository(repository:Repository,  repositorysList: Repositorys,dependencytype: str, pullRequests:list[PullRequest]=None):
 

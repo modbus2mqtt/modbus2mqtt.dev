@@ -39,7 +39,7 @@ def buildPulltext(allRepositorys:repositories.Repositorys, pullRepositorys, issu
         if allRepositorys.pulltext.topic != "" and allRepositorys.pulltext != "":
             pullText.draft = False
     if issue != None:
-        repositories.eprint("Get pulltext from issue " + issue.number + " in " + issue.repositoryname)
+        repositories.eprint("Get pulltext from issue " + str(issue.number) + " in " + issue.repositoryname)
         if issue.repositoryname == pullRepositorys[len(pullRepositorys)-1]:
             # The last repository is the repository which is used to generate the changes.md file.
             # The issue number can be passed to the pull request creation
@@ -100,6 +100,7 @@ def createPullRequests( repositorysList:repositories.Repositorys, issue:Issue):
         pullRepositorys = getPullRepositorys(repositorysList)
         repositories.doWithRepositorys(repositorysList, repositories.readpulltextRepository)
         repositories.doWithRepositorys(repositorysList, repositories.dependenciesRepository, repositorysList,"remote",None)
+        repositories.revertServerFilesRepository(repositorysList)
         pulltext = buildPulltext(repositorysList, pullRepositorys, issue)
         repositories.doWithRepositorys(repositorysList, repositories.createpullRepository, repositorysList, pullRepositorys, pulltext, issue )
         repositories.doWithRepositorys(repositorysList, repositories.updatepulltextRepository, repositorysList, pullRepositorys )
@@ -192,7 +193,7 @@ parser_build = subparsers.add_parser("build", help="build: execute npm run build
 parser_build.set_defaults(command='build')
 parser_test = subparsers.add_parser("test", help="test: execute npm test for all repositorys")
 parser_test.set_defaults(command='test')
-parser_test.add_argument("test", help="runs with npm ci instead of npm install", choices=["test", "startServers", "killServers"], default="test")
+parser_test.add_argument("test", help="runs with npm ci instead of npm install", choices=["test", "startServers", "killServers", "packagejson"], default="test")
 
 parser_execorwait = subparsers.add_parser("execorwait", help="Executed via github event pull_request")
 parser_execorwait.set_defaults(command='execorwait')
@@ -251,6 +252,9 @@ try:
             repositories.doWithRepositorys(repositorysList, repositories.syncpullRepository,repositorysList, prs, args.branch)
         case "test":
             match args.test:
+                case "packagejson":
+                    testall.packagejson(repositorysList)
+
                 case "test":
                     testall.testall(repositorysList)
                 case  "startServers":
@@ -328,7 +332,9 @@ try:
                 repositories.doWithRepositorys(repositorysList, repositories.dependenciesRepository, repositorysList, 'release')
 except repositories.SyncException as err1:
     repositories.eprint(repositories.currentRepository + ": " + err1.args[0])
-    for arg in err1.args:
+    list = list(err1.args)   # Convert to list
+    list.pop(0)
+    for arg in list:
         repositories.eprint( arg)
     exit(2)
 except Exception as err:

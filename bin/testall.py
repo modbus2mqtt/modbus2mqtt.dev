@@ -100,7 +100,18 @@ def testRepository(repository: repositories.Repository):
         print("::group::Unit tests for " + repository.name)
         repositories.executeCommandWithOutputs(args,sys.stderr, sys.stderr)
         print( '::endgroup::' )
-        
+
+def testpackagejson(repository: repositories.Repository):
+    # read package.json
+    f = open("package.json")
+    
+    if re.search('.*("@modbus2mqtt\\/[^"]*":\\s*"file:\\.\\.\\/)',f.read()):
+        raise repositories.SyncException( "package.json contains local dependencies" )
+
+def packagejson(repositorysList)->bool:
+    repositories.doWithRepositorys(repositorysList, testpackagejson)
+
+
 def testall(repositorysList)->bool:
     repositories.doWithRepositorys(repositorysList, testRepository)
     os.chdir("server")

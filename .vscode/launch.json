@@ -126,7 +126,7 @@
             "request": "launch",
             "cwd": "${workspaceFolder}",
             "program": "${workspaceFolder}/bin/pulls.py",
-             "args": [ "test", "test"], 
+             "args": [ "test", "packagejson"], 
             "console": "integratedTerminal"
         },
         {
@@ -135,7 +135,7 @@
             "request": "launch",
             "cwd": "${workspaceFolder}",
             "program": "${workspaceFolder}/bin/pulls.py",
-             "args": [ "createpull"], 
+             "args": [ "createpull", "--issue", "server:111"], 
             "console": "integratedTerminal"
         },
         {
