@@ -268,6 +268,7 @@ try:
                 raise repositories.SyncException()
             else:
                 pr  = repositories.getPullrequestFromString(args.pullrequest)
+                pr.status = "open"
                 requiredPrs = repositories.getRequiredReposFromPRDescription(args.pulltext,pr, repositorysList.owner)
                 maintestPullrequest = None
                 for p in requiredPrs:
