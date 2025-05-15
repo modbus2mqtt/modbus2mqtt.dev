@@ -104,20 +104,23 @@
              "args": ["-p", "repositories.test.json", "dependencies", "pull", 
               "--pullrequest","test3:2" ], 
             "console": "integratedTerminal"
-        },
+        },        
         {
             "name": "pulls pullsync",
             "type": "debugpy",
             "request": "launch",
             "cwd": "${workspaceFolder}",
             "program": "${workspaceFolder}/bin/pulls.py",
-             "args": [ "syncpull", "-r", "specification:4", "-t", "Please update me\
-### Dependant Pullrequests\
-|Repository|Pull Request|\
-|----|----|\
-|[specification](https://github.com/modbus2mqtt/specification/pulls/4)|4|\
-|[server](https://github.com/modbus2mqtt/server/pulls/108)|108|\
-", "pullaction"], 
+             "args": [ "syncpull", "-r", "specification:4", "-t", "Please update me", "pullaction"], 
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "pulls pullsync no dependencies",
+            "type": "debugpy",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "program": "${workspaceFolder}/bin/pulls.py",
+             "args": [ "syncpull", "-r", "specification:4",  "pullaction"], 
             "console": "integratedTerminal"
         },
         {

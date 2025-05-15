@@ -542,7 +542,7 @@ def getPullrequestFromString(prname:str )->PullRequest:
     if len(pr) == 3:
         PullRequest(pr[0],int(pr[1], pr[2]))
     if pr[1] != '':
-        return PullRequest(pr[0],int(pr[1]))
+        return PullRequest(pr[0],int(pr[1]),"open")
     return None
 
 def getRequiredReposFromPRDescription(prDescription:str,pullrequest:PullRequest,baseowner:str)->list[PullRequest]:
