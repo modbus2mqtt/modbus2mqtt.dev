@@ -480,7 +480,7 @@ def checkFileExistanceInGithubBranch(owner, repo, branch, file):
     return False
 
 def checkFileExistanceInGithubPullRequest(owner, repo, pullnumber, file):                           
-    result = json.loads(ghapi('GET','/repos/'+ owner +'/' + repo + '/pulls/'+ pullnumber +'/files'))
+    result = json.loads(ghapi('GET','/repos/'+ owner +'/' + repo + '/pull/'+ pullnumber +'/files'))
     for o in result:
         if o['filename'] == file:
             return True
@@ -508,7 +508,7 @@ def searchPullRequest( repository:Repository, repositorys:Repositorys):
     prtext = ""
     if repository.pullrequestid != None:
         prtext= "/" + str(repository.pullrequestid)
-    rc = json.loads(ghapi('GET', "repos/" + repositorys.owner + "/" + repository.name + "/pulls" + prtext))
+    rc = json.loads(ghapi('GET', "repos/" + repositorys.owner + "/" + repository.name + "/pull" + prtext))
     if type(rc) is list:
         return rc;
     else:
@@ -533,7 +533,7 @@ def getpullRequestFromGithub( pullrequest:PullRequest, baseowner:str)->PullReque
     pullrequest.mergedAt = js['mergedAt']
     return  pullrequest
 
-requiredRepositorysRe = r"\/([^\/]*)\/pulls\/(\d+)"
+requiredRepositorysRe = r"\/([^\/]*)\/pull\/(\d+)"
 
 def getPullrequestFromString(prname:str )->PullRequest:
     pr = prname.split(':')

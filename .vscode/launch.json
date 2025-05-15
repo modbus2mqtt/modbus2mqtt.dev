@@ -25,11 +25,26 @@
 ### Dependant Pullrequests\
 |Repository|Pull Request|\
 |----|----|\
-|[specification](https://github.com/modbus2mqtt/specification/pulls/4)|4|\
-|[server](https://github.com/modbus2mqtt/server/pulls/108)|108|\
+|[specification](https://github.com/modbus2mqtt/specification/pull/4)|4|\
+|[server](https://github.com/modbus2mqtt/server/pull/108)|108|\
 ", "pullaction"],
             "console": "integratedTerminal"
         },  
+{
+            "name": "pulls execorwait simple",
+            "type": "debugpy",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "program": "${workspaceFolder}/bin/pulls.py",
+             "args": [ "execorwait", "--noexec", "server:114", "Please update me\
+### Dependant Pullrequests\
+|Repository|Pull Request|\
+|----|----|\
+|[specification](https://github.com/modbus2mqtt/specification/pull/4)|4|\
+|[server](https://github.com/modbus2mqtt/server/pull/114)|114|\
+", "pullaction"],
+            "console": "integratedTerminal"
+        },        
         {
             "name": "pull testall",
             "type": "debugpy",
