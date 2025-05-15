@@ -480,7 +480,7 @@ def checkFileExistanceInGithubBranch(owner, repo, branch, file):
     return False
 
 def checkFileExistanceInGithubPullRequest(owner, repo, pullnumber, file):                           
-    result = json.loads(ghapi('GET','/repos/'+ owner +'/' + repo + '/pull/'+ pullnumber +'/files'))
+    result = json.loads(ghapi('GET','/repos/'+ owner +'/' + repo + '/pulls/'+ pullnumber +'/files'))
     for o in result:
         if o['filename'] == file:
             return True
@@ -508,11 +508,15 @@ def searchPullRequest( repository:Repository, repositorys:Repositorys):
     prtext = ""
     if repository.pullrequestid != None:
         prtext= "/" + str(repository.pullrequestid)
-    rc = json.loads(ghapi('GET', "repos/" + repositorys.owner + "/" + repository.name + "/pull" + prtext))
-    if type(rc) is list:
-        return rc;
+    if prtext != '':
+        rc = json.loads(ghapi('GET', "repos/" + repositorys.owner + "/" + repository.name + "/pulls/" + prtext))
+        if type(rc) is list:
+            return rc;
+        else:
+            return [rc]
     else:
-        return [rc]
+        eprint("Repository " + repository.name + " has no pull request")
+        return None
 
 def getPullrequestId(repository:Repository, repositorys:Repositorys):
     js = searchPullRequest(repository, repositorys)
