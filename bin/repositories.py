@@ -572,7 +572,7 @@ def updatepulltextRepository(repository:Repository, repositorysList: Repositorys
                     "|----|----|\n"
     for p in pullRepositorys:
         prnumber = str(p.pullrequestid)
-        requiredText +=  "|["+ p.name +"](https://github.com/"+repositorysList.owner +"/"+ p.name +"/pulls/"+ prnumber+")|"+ prnumber+"|\n"
+        requiredText +=  "|["+ p.name +"](https://github.com/"+repositorysList.owner +"/"+ p.name +"/pull/"+ prnumber+")|"+ prnumber+"|\n"
     if requiredText.endswith(", "):
         requiredText = requiredText[:-2]
     if repository.pullrequestid != None:
@@ -681,10 +681,12 @@ def authRepository(repository:Repository,  repositorysList: Repositorys, https:b
     executeSyncCommand(["git","remote" , "set-url",  repositorysList.owner, getGitPrefix(https) + repositorysList.owner + "/" +repository.name + ".git"])
 
 def revertServerFilesRepository(repository:Repository):
-    for file in ['CHANGES.md', 'package.json', 'package-lock.json']:
-        executeSyncCommand( ['git','restore','--staged' ], file )    
-        executeSyncCommand( ['git','checkout', ], file )
-
+    eprint( repository.name)
+    for file in ['CHANGES.md', 'package-lock.json']:
+        if os.path.exists(file):
+            executeSyncCommand( ['git','restore','--staged' , file] )    
+            executeSyncCommand( ['git','checkout', ], file )
+        
 def dependenciesRepository(repository:Repository,  repositorysList: Repositorys,dependencytype: str, pullRequests:list[PullRequest]=None):
 
     if dependencytype == 'release':
