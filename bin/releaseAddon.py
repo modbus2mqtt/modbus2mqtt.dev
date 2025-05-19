@@ -107,7 +107,7 @@ else:
                           newValue='Modbus <=> MQTT' ),
         StringReplacement(pattern='image: ghcr.io/modbus2mqtt/modbus2mqtt.latest', newValue= 'image: ghcr.io/modbus2mqtt/modbus2mqtt'),
         StringReplacement(pattern='slug:.*', newValue='slug: modbus2mqtt'),
-        StringReplacement(pattern='\s*ports:\n\s*3000\/tcp: 3000\n', newValue=''),
+        StringReplacement(pattern='\s*ports:\n\s*3000\/tcp: 3000\n', newValue='ports:\n'),
 
         ]
     replacementsDocker = [
