@@ -21,7 +21,7 @@ def getPullRepositorys(allRepositorys:repositories.Repositorys)->MutableSequence
     rc:MutableSequence[repositories.Repository] = []
     for repository in allRepositorys.repositorys:
         if repository.localChanges > 0:
-            raise PullException("Repository " + repository.name + " has local changes")
+            raise PullException(os.getcwd() + ": Repository " + repository.name + " has local changes")
         if repository.gitChanges > 0:
             rc.append( repository)
     if len(rc) == 0:

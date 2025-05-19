@@ -160,7 +160,7 @@ def executeCommandWithOutputs(cmdArgs: list[str], stdout, stderr,  *args, **kwar
    proc = subprocess.Popen(cmdArgs, stdout=stdout, stderr=stderr)
    proc.wait()
    if proc.returncode != 0:
-        raise SyncException( ' '.join(cmdArgs) + " exited with rc= " + proc.returncode)
+        raise SyncException( os.getcwd() +':'+' '.join(cmdArgs) + " exited with rc= " + str( proc.returncode))
 
 def executeSyncCommand(cmdArgs: list[str], *args, **kwargs)-> str:
     return executeSyncCommandWithCwd(cmdArgs, os.getcwd(), *args, **kwargs)
@@ -294,7 +294,7 @@ class Checkrun:
 def getLastCheckRun(repositories:Repositorys,repository:Repository, branch:str)->Checkrun:
     js = json.loads(ghapi('GET', '/repos/' + repositories.owner +'/' + repository.name + '/commits/' + branch + '/check-runs?filter=latest').decode('utf-8'))
     if js['total_count'] != 1:
-        raise SyncException( "Invalid number of check runs for " + '/'.join([repositories.owner , repository.name, branch]) + ': ' + js['total_count'])
+        raise SyncException( os.getcwd() + "Invalid number of check runs for " + '/'.join([repositories.owner , repository.name, branch]) + ': ' + js['total_count'])
     checkrunjs = js["checkruns"][0]
     return Checkrun(checkrunjs['status'] ==  "completed", checkrunjs["conclusion"] == "success")
               
@@ -312,7 +312,7 @@ def waitForMainTestPullRequest(repositories:Repositorys, mainTestPullRequest:Pul
                         js = entry
   
                 if js == None:
-                    raise SyncException("Unable to get pull request id for " + mr.name)
+                    raise SyncException(os.getcwd() +  "Unable to get pull request id for " + mr.name)
                 match ( js['state'] ):
                     case 'OPEN'| 'APPROVED':  
                         eprint( "state " + js['state'])
@@ -450,7 +450,7 @@ def createpullRepository( repository: Repository, repositorysList:Repositorys, p
         if len(err.args) and err.args[0] != "":
             js = json.loads(err.args[2])
             if js['errors'][0]['message'].startswith("A pull request already exists for"):
-                eprint( js['errors'][0]['message']  + ". Continue...")
+                eprint( js['errors'][0]['message']  + " " + repository.name + ". Continue...")
                 repository.pullrequestid = getPullrequestId(repository,repositorysList)
                 return
             else:
@@ -508,15 +508,18 @@ def searchPullRequest( repository:Repository, repositorys:Repositorys):
     prtext = ""
     if repository.pullrequestid != None:
         prtext= "/" + str(repository.pullrequestid)
-    if prtext != '':
-        rc = json.loads(ghapi('GET', "repos/" + repositorys.owner + "/" + repository.name + "/pulls/" + prtext))
+    rc = json.loads(ghapi('GET', "repos/" + repositorys.owner + "/" + repository.name + "/pulls" + prtext))
+    if  prtext == '': 
+        for prx in rc:
+            if prx['user']['login'] == repositorys.login:
+                return[prx]
+    else:
         if type(rc) is list:
             return rc;
         else:
             return [rc]
-    else:
-        eprint("Repository " + repository.name + " has no pull request")
-        return None
+    eprint("Repository " + repository.name + " has no pull request")
+    return None
 
 def getPullrequestId(repository:Repository, repositorys:Repositorys):
     js = searchPullRequest(repository, repositorys)
@@ -542,7 +545,7 @@ requiredRepositorysRe = r"\/([^\/]*)\/pull\/(\d+)"
 def getPullrequestFromString(prname:str )->PullRequest:
     pr = prname.split(':')
     if len(pr) < 2:
-        raise SyncException("Invalid format for pull request (expected: <repository>:<pull request number>)")
+        raise SyncException(os.getcwd() + "Invalid format for pull request (expected: <repository>:<pull request number>)")
     if len(pr) == 3:
         PullRequest(pr[0],int(pr[1], pr[2]))
     if pr[1] != '':
@@ -602,7 +605,19 @@ def readPackageJson( dir:str)->Dict[str,any]:
         if  dir != '':
             eprint("Exception directory found: " + dir )
 
-        raise SyncException(msg)
+        raise SyncException(os.getcwd() + ": " +msg)
+def checkDependencyInPackageJson( pkgjson,prname:str, ghname:str):
+    dep = pkgjson['dependencies']
+    devDep = pkgjson['devDependencies']
+    found = False
+    name='@modbus2mqtt/' + prname
+    if dep != None and name in dep and dep[name] == ghname:
+        return True
+    if devDep != None and name in devDep and devDep[name] == ghname:
+        return True
+
+    return  False
+    
 def updatePackageJsonReferences(repository:Repository,  repositorysList: Repositorys,dependencytype: str, pullRequests:list[PullRequest]):
     if dependencytype != 'pull':
         pullRequests = []
@@ -628,15 +643,18 @@ def updatePackageJsonReferences(repository:Repository,  repositorysList: Reposit
                    
             match dependencytype:
                 case "local":
-                    npminstallargs.append( os.path.join('..',pr.name))
-                    npmuninstallargs.append( package )
+                    if not checkDependencyInPackageJson(pkgjson,pr.name,os.path.join('..',pr.name)):
+                        npminstallargs.append( os.path.join('..',pr.name))
+                        npmuninstallargs.append( package )
                 case "remote":
                     # for testing: Use login instead of owner
                     # In production owner == login
                     githubName = 'github:'+ repositorysList.owner +'/' + pr.name
+
                     if checkFileExistanceInGithubBranch('modbus2mqtt', pr.name,'main', 'package.json'):
-                        npminstallargs.append(  githubName)
-                        npmuninstallargs.append( package )
+                        if not checkDependencyInPackageJson(pkgjson,pr.name,githubName):
+                            npminstallargs.append(  githubName)
+                            npmuninstallargs.append( package )
                     else:
                         eprint("package.json is missing in modbus2mqtt/" + pr.name +"#main"
                         + ".\nUnable to set remote reference in modbus2mqtt/" + repository.name 
@@ -752,7 +770,7 @@ def dependenciesRepository(repository:Repository,  repositorysList: Repositorys,
                 eprint( "Released " + repository.name + ":" + versionTag)
         else:
             if needsNewRelease:
-                raise SyncException( "Release failed: Tag '" + versionTag + "' exists in " + repository.name )
+                raise SyncException( os.getcwd() + ": Release failed: Tag '" + versionTag + "' exists in " + repository.name )
         # merge back to main to prevent ahead of .. commits
         executeSyncCommand( ['git','switch', 'main'] )
         executeSyncCommand( ['git','merge', '-X','ours', 'release'] )
@@ -763,18 +781,18 @@ def dependenciesRepository(repository:Repository,  repositorysList: Repositorys,
         
 def prepareGitForReleaseRepository(repository:Repository,  repositorysList: Repositorys):
     if repositorysList.login != repositorysList.owner:
-       raise SyncException("Release is allowed for " + repositorysList.owner + " only")
+       raise SyncException(os.getcwd() + ": Release is allowed for " + repositorysList.owner + " only")
     js = executeSyncCommand(['git', 'remote', '-v']).decode("utf-8")
     match = re.search(r'' + repositorysList.owner + '/', js)
     if not match:
-       raise SyncException("Git origin is not " + repositorysList.owner + '/' + repository.name )
+       raise SyncException(os.getcwd() + ": Git origin is not " + repositorysList.owner + '/' + repository.name )
     try:
         executeSyncCommand(['git', 'fetch',repositorysList.owner,'release'] )
     except SyncException as err:
         try:
             executeSyncCommand(['git', 'branch', 'release']).decode("utf-8")
         except SyncException as err:
-            eprint("release branch existed")
+            eprint(os.getcwd() + ": release branch existed")
     executeSyncCommand(['git', 'switch', 'release']).decode("utf-8")
     repository.branch = "release"
 def npminstallRepository(repository:Repository, ci:bool):
