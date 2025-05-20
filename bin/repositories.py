@@ -349,12 +349,14 @@ def syncRepository(repository: Repository, repositorys:Repositorys):
     # ghapi('GET', ownerrepo+ '/merge-upstream', '-f', 'branch=main'
     # Is is not neccessary to update the main branch in forked repository, because the main branch's origin points to owner
     if repository.isForked:
+        executeSyncCommand( ['gh','repo','sync', repositorys.login + '/' + repository.name ,  '-b' , "main" , "--force"]  ).decode("utf-8")
+        executeSyncCommand( ['gh','repo','sync', repositorys.login + '/' + repository.name ,  '-b' , repository.branch ]  ).decode("utf-8")
         executeSyncCommand(['git','switch', repository.branch ]).decode("utf-8")
+        executeSyncCommand(['git','pull']).decode("utf-8")
         executeSyncCommand(['git','merge', repositorys.owner + '/main' ,'-X','theirs']).decode("utf-8")
         executeSyncCommand(['git','pull']).decode("utf-8")
         executeSyncCommand(['git','push', repositorys.login, 'HEAD']).decode("utf-8")
 
-        executeSyncCommand( ['gh','repo','sync', repositorys.login + '/' + repository.name ,  '-b' , repository.branch ]  ).decode("utf-8")
         # download all branches from owners github to local git main branch
         try:
             executeSyncCommand(['git','switch', repository.branch]).decode("utf-8")
@@ -678,9 +680,10 @@ def updatePackageJsonReferences(repository:Repository,  repositorysList: Reposit
                         + "\nContinuing with invalid reference")
 #    if len(npmuninstallargs ) > 0:
 #        executeSyncCommand(["npm", "uninstall"] + npmuninstallargs)
-    try:        
-        executeCommandWithOutputs(["npm", "install"]  + npminstallargs, sys.stderr,sys.stderr)
-        return len(npminstallargs ) > 0
+    try:
+        if len(npminstallargs) > 0:
+            executeCommandWithOutputs(["npm", "install"]  + npminstallargs, sys.stderr,sys.stderr)
+        return len(npminstallargs) > 0
     except Exception as err:
         eprint("npm cache exceptions can happen if the github url in dependencies is wrong!")
         raise err
@@ -702,12 +705,15 @@ def authRepository(repository:Repository,  repositorysList: Repositorys, https:b
     executeSyncCommand(["git","remote" , "set-url",  repositorysList.login, getGitPrefix(https) + repositorysList.login + "/" +repository.name + ".git"])
     executeSyncCommand(["git","remote" , "set-url",  repositorysList.owner, getGitPrefix(https) + repositorysList.owner + "/" +repository.name + ".git"])
 
-def revertServerFilesRepository(repository:Repository):
+def revertServerFilesRepository(repository:Repository,  repositorysList: Repositorys):
     eprint( repository.name)
-    for file in ['CHANGES.md', 'package-lock.json']:
+    for file in ['CHANGELOG.md', 'package-lock.json']:
         if os.path.exists(file):
-            executeSyncCommand( ['git','restore','--staged' , file] )    
-            executeSyncCommand( ['git','checkout', ], file )
+            try:
+                executeSyncCommand( ['git', 'diff' , '--exit-code',  repositorysList.owner + "/main", '--', file] )    
+            except SyncException as err:
+                executeSyncCommand( ['git', 'checkout',  repositorysList.owner + '/main', '--', file ])
+                executeSyncCommand( ['git', 'commit' ,'-m', 'Revert ' + file + ' to ' + repositorysList.owner + "/main" ])
         
 def dependenciesRepository(repository:Repository,  repositorysList: Repositorys,dependencytype: str, pullRequests:list[PullRequest]=None):
 
