@@ -95,11 +95,12 @@ def createPullRequests( repositorysList:repositories.Repositorys, issue:Issue):
     try:
         # compareRepositorys(repositorys)
         repositories.doWithRepositorys(repositorysList, repositories.syncRepository, repositorysList)
+        repositories.eprint("===== Sync finished ===========")
         repositories.doWithRepositorys(repositorysList, repositories.pushRepository, repositorysList)
         repositories.doWithRepositorys(repositorysList, repositories.compareRepository, repositorysList)
         pullRepositorys = getPullRepositorys(repositorysList)
         repositories.doWithRepositorys(repositorysList, repositories.readpulltextRepository)
-        repositories.doWithRepositorys(repositorysList, repositories.dependenciesRepository, repositorysList,"remote",None)
+        #repositories.doWithRepositorys(repositorysList, repositories.dependenciesRepository, repositorysList,"remote",None)
         repositories.doWithRepositorys(repositorysList, repositories.revertServerFilesRepository, repositorysList)
         pulltext = buildPulltext(repositorysList, pullRepositorys, issue)
         repositories.doWithRepositorys(repositorysList, repositories.createpullRepository, repositorysList, pullRepositorys, pulltext, issue )

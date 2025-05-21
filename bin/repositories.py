@@ -811,6 +811,7 @@ def buildRepository(repository:Repository):
 
 def doWithRepositorys( repositorys:Repositorys, repoFunction:Any, *args:Any ): 
     pwd = os.getcwd()
+    eprint("===== " + repoFunction.__name__ , args)
     for repository in repositorys.repositorys:
         global currentRepository 
         currentRepository = repository.name
