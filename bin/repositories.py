@@ -681,8 +681,7 @@ def updatePackageJsonReferences(repository:Repository,  repositorysList: Reposit
 #    if len(npmuninstallargs ) > 0:
 #        executeSyncCommand(["npm", "uninstall"] + npmuninstallargs)
     try:
-        if len(npminstallargs) > 0:
-            executeCommandWithOutputs(["npm", "install"]  + npminstallargs, sys.stderr,sys.stderr)
+        executeCommandWithOutputs(["npm", "install"]  + npminstallargs, sys.stderr,sys.stderr)
         return len(npminstallargs) > 0
     except Exception as err:
         eprint("npm cache exceptions can happen if the github url in dependencies is wrong!")
