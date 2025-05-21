@@ -246,7 +246,7 @@ try:
         case "syncpull":
             pr  = validatePullRequestArgs(args.pullrequest, args.pulltext, repositorysList)
             if args.pulltext == None or args.pulltext == '':
-                prs=[pr]
+                prs =repositories.getRequiredPullrequests(pr,owner=repositorysList.owner)                
             else:
                 prs = repositories.getRequiredPullrequests(  pullrequest=pr, pulltext=args.pulltext, owner=repositorysList.owner)
             repositories.doWithRepositorys(repositorysList, repositories.syncpullRepository,repositorysList, prs, args.branch)

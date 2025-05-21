@@ -126,7 +126,7 @@
             "request": "launch",
             "cwd": "${workspaceFolder}",
             "program": "${workspaceFolder}/bin/pulls.py",
-             "args": [ "syncpull", "-r", "specification:4", "-t", "Please update me", "pullaction"], 
+             "args": [ "-o","modbus2mqtt", "syncpull", "pull119", "--pullrequest", "server:119"], 
             "console": "integratedTerminal"
         },
         {
