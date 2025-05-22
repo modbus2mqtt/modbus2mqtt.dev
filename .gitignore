@@ -129,7 +129,7 @@ dist
 .yarn/install-state.gz
 .pnp.*
 /test*/
-yaml-dir/
+yaml-dir*/
 server.shared/
 specification.shared/
 angular/
