@@ -171,6 +171,10 @@ parser_init = subparsers.add_parser("init", help="init: forks and clones reposit
 parser_init.add_argument("-b", "--branch", help="New branch name",  nargs='?', default='main')
 parser_init.set_defaults(command='init')
 
+parser_git = subparsers.add_parser("git", help="git execute git command for all repositories. add git arguments")
+parser_git.set_defaults(command='git')
+
+
 parser_authenticate = subparsers.add_parser("auth", help="Change git credential from ssh to https and vice versa")
 parser_authenticate.add_argument("-t", "--https", help="Change git credential to https",  action='store_true')
 parser_authenticate.set_defaults(command='auth')
@@ -218,7 +222,7 @@ parser_dependencies.add_argument("-t", "--pulltext", help="Pulltext " , type= st
 parser_dependencies.set_defaults(command='dependencies')
 try:
     #repositories.eprint( sys.orig_argv)
-    args = parser.parse_args()
+    args, unknownargs = parser.parse_known_args()
     repositorysList = repositories.readrepositorys(args.repositories, args.owner)
     if repositorysList == None:
         raise repositories.SyncException("Unable to read " + args.repositories + " invalid file content?")
@@ -236,6 +240,9 @@ try:
             if repositorysList.owner != repositorysList.login:
                 raise repositories.SyncException("Owner same as logged in user: " + repositorysList.owner + " == " + repositorysList.login )
             repositories.doWithRepositorys(repositorysList, repositories.authRepository, repositorysList, args.https )
+        case "git":
+            repositories.doWithRepositorys(repositorysList, repositories.gitRepository, unknownargs)
+
         case "branch":
             repositories.doWithRepositorys(repositorysList, repositories.newbranchRepository, args.branch)
         case "sync":

@@ -72,6 +72,16 @@
              "args": [ "createpull" , "--issue", "server:111"], 
             "console": "integratedTerminal"
         },
+        {
+            "name": "git status",
+            
+            "type": "debugpy",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "program": "${workspaceFolder}/bin/pulls.py",
+             "args": ["git","status"], 
+            "console": "integratedTerminal"
+        },
 
         {
             "name": "pulls sync",

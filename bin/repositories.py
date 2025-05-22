@@ -388,6 +388,14 @@ def syncRepository(repository: Repository, repositorys:Repositorys):
     out = executeSyncCommand(['git','diff', '--name-only','main' ]).decode("utf-8")
     repository.gitChanges = out.count('\n')
 
+def gitRepository(repository: Repository, *args, **kwargs):
+    ar = list(args)[0].copy()
+    ar.insert(0,'git')
+    try:
+        eprint( repository.name + "\n" + executeSyncCommand( ar).decode("utf-8"))
+    except SyncException as err:
+        eprint(err.args[0])
+
 # syncs main from original github source to local git branch (E.g. 'feature')
 def syncpullRepository(repository: Repository, repositorys:Repositorys, prs:list[PullRequest], branch:str):
     executeSyncCommand(['git','switch', 'main'])
