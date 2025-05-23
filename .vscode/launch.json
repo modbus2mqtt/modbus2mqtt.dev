@@ -69,7 +69,7 @@
             "request": "launch",
             "cwd": "${workspaceFolder}",
             "program": "${workspaceFolder}/bin/pulls.py",
-             "args": [ "createpull" , "--issue", "server:111"], 
+             "args": [ "createpull"], 
             "console": "integratedTerminal"
         },
         {

@@ -344,7 +344,7 @@ def syncRepository(repository: Repository, repositorys:Repositorys):
     # Sync owners github repository main branch from modbus2mqtt main branch
     # Only the main branch needs to be synced from github
     executeSyncCommand(['git','switch', 'main' ]).decode("utf-8")
-    executeSyncCommand(['git','fetch' ]).decode("utf-8")
+    executeSyncCommand(['git','pull' ]).decode("utf-8")
     executeSyncCommand(['git','merge', repositorys.owner + '/main' ,'-X','theirs']).decode("utf-8")
     # ghapi('GET', ownerrepo+ '/merge-upstream', '-f', 'branch=main'
     # Is is not neccessary to update the main branch in forked repository, because the main branch's origin points to owner
@@ -359,11 +359,12 @@ def syncRepository(repository: Repository, repositorys:Repositorys):
 
         # download all branches from owners github to local git main branch
         try:
-            executeSyncCommand(['git','switch', repository.branch]).decode("utf-8")
-            ghapi('GET', '/repos/' + repositorys.login + '/' + repository.name + '/branches/' + repository.branch)
-            executeSyncCommand(['git','switch', repository.branch]).decode("utf-8")
-            executeSyncCommand(['git','branch','--set-upstream-to='+ repositorys.login +'/' + repository.branch, repository.branch ])
-            executeSyncCommand(['git','pull','--rebase']).decode("utf-8")
+            if repository.branch != 'main':
+                executeSyncCommand(['git','switch', repository.branch]).decode("utf-8")
+                ghapi('GET', '/repos/' + repositorys.login + '/' + repository.name + '/branches/' + repository.branch)
+                executeSyncCommand(['git','switch', repository.branch]).decode("utf-8")
+                executeSyncCommand(['git','branch','--set-upstream-to='+ repositorys.login +'/' + repository.branch, repository.branch ])
+                executeSyncCommand(['git','pull','--rebase']).decode("utf-8")
         except SyncException as err:
             
             if  err.args[0] != "":
@@ -383,9 +384,11 @@ def syncRepository(repository: Repository, repositorys:Repositorys):
         executeSyncCommand(['git','switch', repository.branch]).decode("utf-8")
         executeSyncCommand(['git','pull', '--rebase']).decode("utf-8")
    
-    repository.localChanges = getLocalChanges()
     executeSyncCommand( ['git','merge', 'main'] ).decode("utf-8")
-    out = executeSyncCommand(['git','diff', '--name-only','main' ]).decode("utf-8")
+    repository.localChanges = getLocalChanges()
+    out = executeSyncCommand(['git','diff', '--name-only',repositorys.owner +'/main' ]).decode("utf-8")
+    # Ignore changes in CHANGELOG.md
+    out = out.replace("CHANGELOG.md\n", "")
     repository.gitChanges = out.count('\n')
 
 def gitRepository(repository: Repository, *args, **kwargs):
