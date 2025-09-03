@@ -198,8 +198,8 @@ def forkRepository( repositoryName, owner ):
             time.sleep(3)
 def branchExists( branch):
     try:
-        executeSyncCommand( ['git', 'branch', branch])
-        return False
+        br = executeSyncCommand( ['git', 'branch','--list', branch]).decode("utf-8")
+        return len(re.findall(r'' + branch , br, re.MULTILINE)) >0
     except SyncException as err:
         return True
 def readrepositorys(repositorysFile:str, owner:str)->Repositorys:
@@ -241,7 +241,7 @@ def checkRemote( remote:str):
         return len(re.findall(r'((\n|^)' + remote + ')', out, re.MULTILINE)) >0
 
 def addRemote(repositories:Repositorys, repository:Repository, origin:str):
-     cmd = ['git', 'remote', 'add', origin, getGitPrefixFromRepos(repositories)  + origin + '/' + repository.name + '.git' ]
+     cmd = ['git', 'remote', 'add', origin, getGitPrefixFromRepos(repositories)  + repositories.owner + '/' + repository.name + '.git' ]
      executeSyncCommand(cmd)
 def setUrl(repository:Repository, repositorys:Repositorys):
     eprint("setUrl")
@@ -728,12 +728,28 @@ def revertServerFilesRepository(repository:Repository,  repositorysList: Reposit
 def dependenciesRepository(repository:Repository,  repositorysList: Repositorys,dependencytype: str, pullRequests:list[PullRequest]=None):
 
     if dependencytype == 'release':
+        executeSyncCommand( ["git", "config", "pull.rebase", "true"] )
         # find unreleased commits
+        if not checkRemote('main'):
+            addRemote(repositorysList, repository,'main')
+        if not branchExists('main'):
+            executeSyncCommand( ['git','switch','-c', 'main' ])
+        else:
+            executeSyncCommand( ['git','checkout', 'main' ])
         changedInMain = 0
-        executeSyncCommand( ['git','switch', 'main'] )
         executeSyncCommand( ['git','pull','--rebase'] )
         try:
-            sha = executeSyncCommand( ['git','merge-base', 'main' , 'release' ] ).decode("utf-8")
+            try:
+                if not checkRemote('release'):
+                    addRemote(repositorysList, repository,'release')
+            except SyncException as err:
+                print("remote was existing")
+            if not branchExists('release'):
+                executeSyncCommand( ['git','switch','-c', 'release' ])
+            else:
+                executeSyncCommand( ['git','checkout', 'release' ])
+            executeSyncCommand([ 'git','branch','--set-upstream-to='+ repositorysList.owner + '/' + repository.branch] )
+            sha = executeSyncCommand( ['git','merge-base', 'main' , repositorysList.owner + '/release' ] ).decode("utf-8")
             sha = sha.replace('\n','')
             out:str = executeSyncCommand(['git','diff', '--name-status', sha ]).decode("utf-8")
             changedInMain = out.count('\n')
@@ -746,10 +762,7 @@ def dependenciesRepository(repository:Repository,  repositorysList: Repositorys,
                 js = json.loads(err.args[2])
                 if  js['status'] == str(404):
                     changedInMain = 1 # Increment version number, because release branch was created
-                    executeSyncCommand(["git", "switch", "release"])
                     executeSyncCommand(["git", "push", "modbus2mqtt", "-u"])
-                    executeSyncCommand([ 'git','branch','--set-upstream-to='+ repositorysList.owner + '/' + repository.branch] )
-  
                 else:
                     raise err
                 
@@ -764,8 +777,8 @@ def dependenciesRepository(repository:Repository,  repositorysList: Repositorys,
                 executeSyncCommand( ["git", "pull", "-X", "theirs"] )
                 executeSyncCommand( ["git", "push" , "-f", repositorysList.owner, "HEAD"])
                 needsNewRelease = True
-        executeSyncCommand( ['git','switch', 'release'] )                            
-        executeSyncCommand( ["git", "pull", "-X", "theirs"] )
+        executeSyncCommand( ['git','checkout', 'release'] )
+        executeSyncCommand( ["git", "pull", repositorysList.owner, "release", "-X", "theirs", "--rebase"] )
         executeSyncCommand( ['git','merge', '-X','theirs', 'main'] )
         updatePackageJsonReferences(repository, repositorysList, dependencytype, pullRequests)    
         if  getLocalChanges() > 0:
@@ -788,7 +801,7 @@ def dependenciesRepository(repository:Repository,  repositorysList: Repositorys,
             if needsNewRelease:
                 raise SyncException( os.getcwd() + ": Release failed: Tag '" + versionTag + "' exists in " + repository.name )
         # merge back to main to prevent ahead of .. commits
-        executeSyncCommand( ['git','switch', 'main'] )
+        executeSyncCommand( ['git','checkout', 'main'] )
         executeSyncCommand( ['git','merge', '-X','ours', 'release'] )
         executeSyncCommand(["git", "push"])
         
@@ -809,7 +822,7 @@ def prepareGitForReleaseRepository(repository:Repository,  repositorysList: Repo
             executeSyncCommand(['git', 'branch', 'release']).decode("utf-8")
         except SyncException as err:
             eprint(os.getcwd() + ": release branch existed")
-    executeSyncCommand(['git', 'switch', 'release']).decode("utf-8")
+    executeSyncCommand(['git', 'checkout', repositorysList.owner + '/release']).decode("utf-8")
     repository.branch = "release"
 def npminstallRepository(repository:Repository, ci:bool):
     if ci:

@@ -94,10 +94,12 @@ if not args.release and not args.ref.endswith("release"):
 else:
     repositories.executeSyncCommand(['rsync', '-avh', os.path.join(args.basedir,hassioAddonRepository,modbus2mqttLatest) + '/', os.path.join(args.basedir,hassioAddonRepository,modbus2mqtt) +'/'])
 
-    if args.pkgjson == None:
-        version = repositories.readPackageJson(os.path.join( args.basedir, 'server', 'package.json'))['version']
-    else:
-        version = repositories.readPackageJson(os.path.join(args.pkgjson, 'package.json'))['version']
+    serverPath=os.path.join( args.basedir, 'server')
+    if args.pkgjson != None:
+        serverPath=args.pkgjson
+    version = repositories.readPackageJson(os.path.join(serverPath, 'package.json'))['version']
+    angularVersion = repositories.readPackageJson(os.path.join(serverPath , '..', 'angular', 'package.json'))['version']
+    specificationVersion = repositories.readPackageJson(os.path.join(serverPath , '..', 'specification', 'package.json'))['version']
     removeTag(args.basedir,hassioAddonRepository, 'v' +version)
     githuburl = 'github:modbus2mqtt/server'
     replacements = [
@@ -113,6 +115,8 @@ else:
     replacementsDocker = [
         StringReplacement(pattern=githuburl+ '[^\n]*', newValue=githuburl + '#v' + version  )
         ]        
-    updateConfigAndDockerfile(os.path.join(args.basedir, hassioAddonRepository,modbus2mqtt), version, replacements,replacementsDocker)
+    #updateConfigAndDockerfile(os.path.join(args.basedir, hassioAddonRepository,modbus2mqtt), version, replacements,replacementsDocker)
     print("TAG_NAME=" + version)
+    print("ANGULAR_VERSION=" + angularVersion)
+    print("SPECIFICATION_VERSION=" + specificationVersion)
 
