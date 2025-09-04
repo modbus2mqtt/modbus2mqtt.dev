@@ -473,13 +473,25 @@ def createpullRepository( repository: Repository, repositorysList:Repositorys, p
 
 
    
-def newBranchRepository(repository:Repository, branch:str):
-    try:
-        executeSyncCommand(['git','show-ref','--quiet','refs/heads/' + branch])
-    except:
-        executeSyncCommand(['git','checkout','-b', branch ])
-    executeSyncCommand(['git','switch', branch])
-    executeSyncCommand(['git','fetch'])
+def branchRepository(repository:Repository, branch:str, delete:bool, owner:str):
+    msg =""
+    if delete:
+        try:
+            msg =executeSyncCommand(['git','show-ref','--quiet','refs/heads/' + branch]).decode("utf-8")
+            msg =executeSyncCommand(['git','branch', '-d', branch]).decode("utf-8")
+        except:
+            eprint( f"{repository.name}: Local branch {branch} does not exist {msg}\n" );
+        try:
+            msg = executeSyncCommand(['git','push', '-d', owner, branch])
+        except:
+            eprint( f"{repository.name}: Remote branch {owner}/{branch} does not exist {msg}\n");
+    else:
+        try:
+            executeSyncCommand(['git','show-ref','--quiet','refs/heads/' + branch])
+        except:
+            executeSyncCommand(['git','checkout','-b', branch ])
+        executeSyncCommand(['git','switch', branch])
+        executeSyncCommand(['git','fetch'])
 # not used?    
 def getPullRequests(repository:Repository, repositorys:Repositorys):
     return getRequiredPullrequests(repository, repositorys)

@@ -64,6 +64,15 @@
             "console": "integratedTerminal"
         },
         {
+            "name": "pull branch",
+            "type": "debugpy",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "program": "${workspaceFolder}/bin/pulls.py",
+             "args": ["branch", "-d", "modbuscache"], 
+            "console": "integratedTerminal"
+        },
+        {
             "name": "pull create",
             "type": "debugpy",
             "request": "launch",

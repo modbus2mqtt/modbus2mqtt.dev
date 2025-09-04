@@ -181,6 +181,7 @@ parser_authenticate.set_defaults(command='auth')
 
 parser_switch = subparsers.add_parser("branch", help="branch: Switches to the given branch")
 parser_switch.add_argument("branch", help="branch name")
+parser_switch.add_argument("-d","--delete", help="Deletes a branch in all repositories local and remote" , action='store_true')
 parser_switch.set_defaults(command='branch')
 
 parser_syncpull = subparsers.add_parser("syncpull", help="sync: pull request from root root repositories")
@@ -244,7 +245,7 @@ try:
             repositories.doWithRepositorys(repositorysList, repositories.gitRepository, unknownargs)
 
         case "branch":
-            repositories.doWithRepositorys(repositorysList, repositories.newbranchRepository, args.branch)
+            repositories.doWithRepositorys(repositorysList, repositories.branchRepository, args.branch, args.delete, repositorysList.login)
         case "sync":
             repositories.doWithRepositorys(repositorysList, repositories.syncRepository,repositorysList)
         case "install":
