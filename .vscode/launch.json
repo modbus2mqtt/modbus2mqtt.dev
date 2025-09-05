@@ -21,12 +21,12 @@
             "request": "launch",
             "cwd": "${workspaceFolder}",
             "program": "${workspaceFolder}/bin/pulls.py",
-             "args": [ "execorwait", "--noexec", "specification:4", "Please update me\
+             "args": [ "execorwait", "--noexec", "angular:14", "Enable Display and Input in Hex format for modbus Addresses\
 ### Dependant Pullrequests\
 |Repository|Pull Request|\
 |----|----|\
-|[specification](https://github.com/modbus2mqtt/specification/pull/4)|4|\
-|[server](https://github.com/modbus2mqtt/server/pull/108)|108|\
+|[server.shared](https://github.com/modbus2mqtt/server.shared/pull/7)|7|\
+|[angular](https://github.com/modbus2mqtt/angular/pull/14)|14|\
 ", "pullaction"],
             "console": "integratedTerminal"
         },  
