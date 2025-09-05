@@ -316,9 +316,9 @@ try:
                         # I need a open pull request with check to proceed
                         #TODO repositories.waitForMainTestPullRequest(repositorysList,maintestPullrequest)
                         repositories.eprint("Wait is not implemented yet" )
-                        if( pr == None)
+                        if( pr == None):
                             repositories.eprint("No pr extracted from pull request text\n" + args.pullrequest)
-                        else
+                        else:
                             repositories.eprint("No mainPullRequest found\n" + args.pullrequest)
                             
 
