@@ -316,6 +316,11 @@ try:
                         # I need a open pull request with check to proceed
                         #TODO repositories.waitForMainTestPullRequest(repositorysList,maintestPullrequest)
                         repositories.eprint("Wait is not implemented yet" )
+                        for pr1 in requiredPrs:
+                            repositories.eprint("required PR: " + pr1.name )
+                        if pr1.status.lower() == "closed":
+                            closedCount += 1
+
                         if( pr == None):
                             repositories.eprint("No pr extracted from pull request text\n" + args.pullrequest)
                         else:
