@@ -134,7 +134,7 @@ def initRepositorys(branch):
    
         finally:
             os.chdir(pwd)
-    repositories.doWithRepositorys(repositorysList, repositories.newBranchRepository, branch)
+    repositories.doWithRepositorys(repositorysList, repositories.branchRepository, branch, False, "")
  
 
 def dependencies( repositoryList, type:str, *args):
