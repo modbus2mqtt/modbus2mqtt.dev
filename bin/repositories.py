@@ -332,8 +332,22 @@ def waitForMainTestPullRequest(repositories:Repositorys, mainTestPullRequest:Pul
     # check run not found or other issues. It should stop with exit() when checkrun is finished
     SyncException( "Unable validate check run for pull Request " + mainTestPullRequest.name + ":" +  str(mainTestPullRequest.number ))
 
+def stashPushPackageJson(repository: Repository):
+    try:
+        executeSyncCommand(['git','stash', '--', 'package.json',  'package-lock.json'])
+    except SyncException as err:
+        eprint("nothing to stash")
+
+def stashPopPackageJson(repository: Repository):
+    try:
+        executeSyncCommand(['git','stash', 'pop', '--quiet'])
+    except SyncException as err:
+        eprint("nothing to pop")
+
 # syncs main from original github source to local git branch (E.g. 'feature')
 def syncRepository(repository: Repository, repositorys:Repositorys):
+    executeSyncCommand( ["git", "config", "pull.rebase", "true"] )
+
     repository.isForked = isRepositoryForked(repository.name)
     repository.branch =  subprocess.getoutput('git rev-parse --abbrev-ref HEAD')
     setUrl(repository,repositorys)  
@@ -345,15 +359,22 @@ def syncRepository(repository: Repository, repositorys:Repositorys):
     # Only the main branch needs to be synced from github
     executeSyncCommand(['git','switch', 'main' ]).decode("utf-8")
     executeSyncCommand(['git','pull' ]).decode("utf-8")
-    executeSyncCommand(['git','merge', repositorys.owner + '/main' ,'-X','theirs']).decode("utf-8")
+    
     # ghapi('GET', ownerrepo+ '/merge-upstream', '-f', 'branch=main'
     # Is is not neccessary to update the main branch in forked repository, because the main branch's origin points to owner
     if repository.isForked:
+        if repository.branch != 'main':
+            executeSyncCommand(['git','merge', repositorys.owner + '/main' ,'-X','theirs']).decode("utf-8")
         executeSyncCommand( ['gh','repo','sync', repositorys.login + '/' + repository.name ,  '-b' , "main" , "--force"]  ).decode("utf-8")
-        executeSyncCommand( ['gh','repo','sync', repositorys.login + '/' + repository.name ,  '-b' , repository.branch ]  ).decode("utf-8")
-        executeSyncCommand(['git','switch', repository.branch ]).decode("utf-8")
-        executeSyncCommand(['git','pull']).decode("utf-8")
-        executeSyncCommand(['git','merge', repositorys.owner + '/main' ,'-X','theirs']).decode("utf-8")
+        try: 
+            executeSyncCommand( ['gh','repo','sync', repositorys.login + '/' + repository.name ,  '-b' , repository.branch ]  ).decode("utf-8")
+            executeSyncCommand(['git','switch', repository.branch ]).decode("utf-8")
+            executeSyncCommand(['git','pull']).decode("utf-8")
+        except SyncException as err:
+            eprint("No remote branch" + repository.branch + " for " + repositorys.login + '/' + repository.name)
+        if repository.branch != 'main':
+            executeSyncCommand(['git','merge', repositorys.owner + '/main' ,'-X','theirs']).decode("utf-8")
+
         executeSyncCommand(['git','pull']).decode("utf-8")
         executeSyncCommand(['git','push', repositorys.login, 'HEAD']).decode("utf-8")
 
@@ -386,10 +407,13 @@ def syncRepository(repository: Repository, repositorys:Repositorys):
    
     executeSyncCommand( ['git','merge', 'main'] ).decode("utf-8")
     repository.localChanges = getLocalChanges()
-    out = executeSyncCommand(['git','diff', '--name-only',repositorys.owner +'/main' ]).decode("utf-8")
-    # Ignore changes in CHANGELOG.md
-    out = out.replace("CHANGELOG.md\n", "")
-    repository.gitChanges = out.count('\n')
+    if repository.branch != 'main':
+        out = executeSyncCommand(['git','diff', '--name-only',repositorys.owner +'/main' ]).decode("utf-8")
+        # Ignore changes in CHANGELOG.md
+        out = out.replace("CHANGELOG.md\n", "")
+        repository.gitChanges = out.count('\n')
+    else:
+        repository.gitChanges = 0
 
 def gitRepository(repository: Repository, *args, **kwargs):
     ar = list(args)[0].copy()
@@ -734,8 +758,11 @@ def revertServerFilesRepository(repository:Repository,  repositorysList: Reposit
             try:
                 executeSyncCommand( ['git', 'diff' , '--exit-code',  repositorysList.owner + "/main", '--', file] )    
             except SyncException as err:
-                executeSyncCommand( ['git', 'checkout',  repositorysList.owner + '/main', '--', file ])
-                executeSyncCommand( ['git', 'commit' ,'-m', 'Revert ' + file + ' to ' + repositorysList.owner + "/main" ])
+                try:
+                    executeSyncCommand( ['git', 'checkout',  repositorysList.owner + '/main', '--', file ])
+                    executeSyncCommand( ['git', 'commit' ,'-m', 'Revert ' + file + ' to ' + repositorysList.owner + "/main" ])
+                except SyncException as err1:
+                    eprint("Nothing to revert " + file)
         
 def dependenciesRepository(repository:Repository,  repositorysList: Repositorys,dependencytype: str, pullRequests:list[PullRequest]=None):
 

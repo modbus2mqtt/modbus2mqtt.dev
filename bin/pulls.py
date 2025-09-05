@@ -89,11 +89,14 @@ def buildPulltext(allRepositorys:repositories.Repositorys, pullRepositorys, issu
 
 
 def sync(repositorysList:repositories.Repositorys):
+    repositories.doWithRepositorys(repositorysList, repositories.stashPushPackageJson)
     repositories.doWithRepositorys(repositorysList, repositories.syncRepository)
+    repositories.doWithRepositorys(repositorysList, repositories.stashPopPackageJson)
         
 def createPullRequests( repositorysList:repositories.Repositorys, issue:Issue):
     try:
         # compareRepositorys(repositorys)
+        repositories.doWithRepositorys(repositorysList, repositories.stashPushPackageJson)
         repositories.doWithRepositorys(repositorysList, repositories.syncRepository, repositorysList)
         repositories.eprint("===== Sync finished ===========")
         repositories.doWithRepositorys(repositorysList, repositories.pushRepository, repositorysList)
@@ -105,6 +108,7 @@ def createPullRequests( repositorysList:repositories.Repositorys, issue:Issue):
         pulltext = buildPulltext(repositorysList, pullRepositorys, issue)
         repositories.doWithRepositorys(repositorysList, repositories.createpullRepository, repositorysList, pullRepositorys, pulltext, issue )
         repositories.doWithRepositorys(repositorysList, repositories.updatepulltextRepository, repositorysList, pullRepositorys )
+        repositories.doWithRepositorys(repositorysList, repositories.stashPopPackageJson)
     except Exception as err:
         repositories.eprint("Creating aborted =====")
         for arg in err.args:
@@ -311,7 +315,12 @@ try:
                         # otherwise exit(0)
                         # I need a open pull request with check to proceed
                         #TODO repositories.waitForMainTestPullRequest(repositorysList,maintestPullrequest)
-                        repositories.eprint("Wait is not implemented yet")
+                        repositories.eprint("Wait is not implemented yet" )
+                        if( pr == None)
+                            repositories.eprint("No pr extracted from pull request text\n" + args.pullrequest)
+                        else
+                            repositories.eprint("No mainPullRequest found\n" + args.pullrequest)
+                            
 
         case "createpull":
             if repositorysList.owner == repositorysList.login:
