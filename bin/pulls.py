@@ -327,9 +327,9 @@ try:
                             repositories.eprint("required PR: " + ma + "merged. Status " +  st)
 
                         if( pr == None):
-                            repositories.eprint("No pr extracted from pull request text\n" + args.pullrequest)
+                            repositories.eprint("No pr extracted from pull request text\n" + args.pulltext)
                         else:
-                            repositories.eprint("No mainPullRequest found\n" + args.pullrequest)
+                            repositories.eprint("No mainPullRequest found\n" + args.pulltext)
                             
 
         case "createpull":
