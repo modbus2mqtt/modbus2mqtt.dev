@@ -317,9 +317,14 @@ try:
                         #TODO repositories.waitForMainTestPullRequest(repositorysList,maintestPullrequest)
                         repositories.eprint("Wait is not implemented yet" )
                         for pr1 in requiredPrs:
-                            repositories.eprint("required PR: " + pr1.name )
-                        if pr1.status.lower() == "closed":
-                            closedCount += 1
+                            ma = " "
+                            if(pr1.mergedAt == None):
+                                ma = ma + "not "
+                            if(pr1.status == None):
+                                st =  p.status.lower()
+                            else:
+                                st = "None"
+                            repositories.eprint("required PR: " + ma + "merged. Status " +  st)
 
                         if( pr == None):
                             repositories.eprint("No pr extracted from pull request text\n" + args.pullrequest)
