@@ -45,7 +45,16 @@ def getVersionForDevelopment(pkgjson:str):
     js = repositories.readPackageJson(os.path.join(pkgjson,'package.json'))
     version =js['version']
     prnumber = getLatestClosedPullRequest()
-    return version + "-srv" + str(prnumber)
+    match js['name'].split("@",1)[1]:
+        case "server": 
+            sh = "srv"
+        case "specification":
+            sh = "spc"
+        case "angular":
+            sh = "ang"
+        case _:
+            sh = "mod"
+    return version + "-" + sh + str(prnumber)
 
 def replaceStringInFile(inFile, outFile, replacements):
     for repl in replacements:
@@ -93,10 +102,7 @@ if not args.release and not args.ref.endswith("release"):
     print("TAG_NAME=" + version)
 else:
     repositories.executeSyncCommand(['rsync', '-avh', os.path.join(args.basedir,hassioAddonRepository,modbus2mqttLatest) + '/', os.path.join(args.basedir,hassioAddonRepository,modbus2mqtt) +'/'])
-
     serverPath=os.path.join( args.basedir, 'server')
-    if args.pkgjson != None:
-        serverPath=args.pkgjson
     version = repositories.readPackageJson(os.path.join(serverPath, 'package.json'))['version']
     angularVersion = repositories.readPackageJson(os.path.join(serverPath , '..', 'angular', 'package.json'))['version']
     specificationVersion = repositories.readPackageJson(os.path.join(serverPath , '..', 'specification', 'package.json'))['version']
